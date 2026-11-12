@@ -38,6 +38,20 @@ export interface Settings {
   /** levels, tokens, quests and rewards */
   gamification: boolean;
   rewardSounds: boolean;
+  /** identity on the social server; the token is a secret and is never exported */
+  social: { url: string; userId: string; token: string; host: boolean; port: number } | null;
+  socialPrefs: {
+    notify: { requests: boolean; friendActivity: boolean; challenges: boolean; rooms: boolean; cheers: boolean };
+    /** friend ids whose notifications are silenced */
+    muted: string[];
+    /** "HH:MM"; empty = no quiet hours */
+    quietFrom: string;
+    quietTo: string;
+    dndWhileFocusing: boolean;
+    idleMinutes: number;
+    /** start a local countdown when a room's shared timer starts */
+    followRoomTimer: boolean;
+  };
   share: { focusTime: boolean; sessions: boolean; tasksCompleted: boolean; streak: boolean; goals: boolean };
 }
 
@@ -76,6 +90,8 @@ export const DEFAULT_SETTINGS: Settings = {
   lastAutoBackup: 0,
   gamification: true,
   rewardSounds: true,
+  social: null,
+  socialPrefs: { notify: { requests: true, friendActivity: true, challenges: true, rooms: true, cheers: true }, muted: [], quietFrom: "", quietTo: "", dndWhileFocusing: true, idleMinutes: 5, followRoomTimer: true },
   share: { focusTime: true, sessions: true, tasksCompleted: true, streak: true, goals: false },
 };
 
@@ -129,6 +145,7 @@ const LOADERS: Record<string, Loader> = {
       ...DEFAULT_SETTINGS.dashboard.filter((w) => !known.has(w.id)),
     ];
     settings.share = { ...DEFAULT_SETTINGS.share, ...settings.share };
+    settings.socialPrefs = { ...DEFAULT_SETTINGS.socialPrefs, ...settings.socialPrefs, notify: { ...DEFAULT_SETTINGS.socialPrefs.notify, ...settings.socialPrefs?.notify } };
     return { settings };
   },
   profiles: async () => ({ profile: (await rows<Profile>("profiles", "SELECT * FROM profiles LIMIT 1"))[0] ?? null }),

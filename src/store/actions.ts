@@ -526,8 +526,8 @@ const schemaVersion = async () => (await db().select<{ v: number }>("SELECT MAX(
 export async function exportAll(): Promise<ExportFile> {
   const tables: ExportFile["tables"] = {};
   for (const t of TABLES) {
-    // Live timer state is device-local and is not part of an export.
-    tables[t] = await db().select(t === "settings" ? "SELECT * FROM settings WHERE key <> 'active_timer'" : `SELECT * FROM ${t}`);
+    // Live timer state and the social login (a secret) are device-local and are not part of an export.
+    tables[t] = await db().select(t === "settings" ? "SELECT * FROM settings WHERE key NOT IN ('active_timer', 'social', 'social_host_state')" : `SELECT * FROM ${t}`);
   }
   return { app: "tempo", schema_version: await schemaVersion(), exported_at: now(), tables };
 }

@@ -1,0 +1,17 @@
+# One-click deploy of the optional social server to Render (https://render.com).
+# The address Render gives you (wss://<name>.onrender.com) is what friends enter in Tempo → Social.
+services:
+  - type: web
+    name: tempo-social
+    runtime: docker
+    dockerfilePath: ./server/Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "47800"
+      - key: DATA_DIR
+        value: /data
+    disk:
+      name: tempo-social-data
+      mountPath: /data
+      sizeGB: 1

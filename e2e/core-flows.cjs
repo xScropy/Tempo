@@ -66,7 +66,7 @@ const BASE = process.env.TEMPO_URL || 'http://localhost:4173';
   await step('focus: stopwatch on task, survives reload', async () => {
     await nav('Focus');
     await page.getByRole('tab', { name: 'Stopwatch' }).click();
-    await page.getByText('No task — quick focus').click();
+    await page.getByRole('button', { name: /No task/ }).click();
     await page.getByLabel('Search tasks').fill('Research');
     await page.getByRole('button', { name: /Research Article 17/ }).click();
     await page.getByRole('button', { name: 'Start stopwatch' }).click();
@@ -128,7 +128,7 @@ const BASE = process.env.TEMPO_URL || 'http://localhost:4173';
   await step('analytics', async () => { await nav('Analytics'); await page.getByText('Where the time went').waitFor(); await page.waitForTimeout(400); await page.screenshot({ path: `${S}/08-analytics.png`, fullPage: false }); });
   await step('journal', async () => { await nav('Journal'); const t = page.locator('textarea').first(); await t.fill('Finished the **Article 17** research'); await t.blur(); await page.getByText(/Last saved/).waitFor(); });
   await step('search', async () => { await page.keyboard.press('Control+k'); await page.getByRole('dialog', { name: 'Search' }).getByRole('textbox').fill('article 17'); await page.getByText('Research Article 17 ICCPR').first().waitFor(); await page.getByText(/Journal ·/).waitFor(); await page.keyboard.press('Escape'); });
-  await step('friends + settings', async () => { await nav('Friends'); await page.getByText('Your weekly summary').waitFor(); await nav('Settings'); await page.getByRole('tab', { name: 'Dark' }).click(); await page.waitForTimeout(200); });
+  await step('friends + settings', async () => { await nav('Social'); await page.getByText('Work alongside friends').waitFor(); await nav('Settings'); await page.getByRole('tab', { name: 'Dark' }).click(); await page.waitForTimeout(200); });
   await step('dashboard (dark)', async () => { await nav('Dashboard'); await page.getByText('Priority tasks').waitFor(); await page.waitForTimeout(300); await page.screenshot({ path: `${S}/09-dashboard-dark.png` }); await nav('Settings'); await page.getByRole('tab', { name: 'Light' }).click(); await nav('Dashboard'); await page.waitForTimeout(300); await page.screenshot({ path: `${S}/10-dashboard.png` }); });
   await step('persistence across reload', async () => { await page.waitForTimeout(400); await page.reload(); await nav('Projects'); await page.getByText('Moot Court').first().waitFor(); });
   console.log(errors.length ? errors.slice(0, 10).join('\n') : 'no console errors');

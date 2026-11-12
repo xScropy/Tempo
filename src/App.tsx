@@ -5,6 +5,7 @@ import { isRunning } from "@/domain/timer";
 import { attempt, reportError } from "@/lib/notify";
 import { backups, registerQuickCapture, setMiniWindow } from "@/lib/platform";
 import { checkReminders } from "@/lib/reminders";
+import { initSocial } from "@/social/client";
 import { generateOccurrences, setSetting } from "@/store/actions";
 import { data, reload, useData } from "@/store/data";
 import { pauseSession, restoreTimer, resumeSession, startSession, tick, useTimer } from "@/store/timer";
@@ -41,6 +42,7 @@ async function bootOnce() {
   await generateOccurrences();
   await restoreTimer();
   useData.setState({ ready: true });
+  initSocial();
   const s = data().settings;
   void registerQuickCapture(s.quickCaptureShortcut, () => openQuickAdd()).catch(() => undefined);
   if (isTauri() && s.autoBackup && Date.now() - s.lastAutoBackup > 24 * 3_600_000) {

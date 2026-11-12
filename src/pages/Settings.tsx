@@ -193,7 +193,7 @@ export function SettingsPage() {
                 <Button size="sm" variant="ghost" onClick={() => void notify("Tempo", "This is what a reminder looks like.", true)}>Send a test</Button>
               </div>
               <div className="text-xs text-ink-3">Reminders are checked every 30 seconds while Tempo is running. One missed while Tempo was closed is delivered on the next start if it is less than six hours old.</div>
-              <Field label="Global quick-capture shortcut" hint={isTauri() ? "Works from any application while Tempo is running. Leave empty to disable." : "Available in the desktop app. In a browser, press N inside Tempo."}>
+              <Field group label="Global quick-capture shortcut" hint={isTauri() ? "Works from any application while Tempo is running. Leave empty to disable." : "Available in the desktop app. In a browser, press N inside Tempo."}>
                 <div className="flex max-w-sm gap-2">
                   <Input value={shortcut} disabled={!isTauri()} placeholder="CommandOrControl+Shift+Space" onChange={(e) => setShortcut(e.target.value)} />
                   <Button

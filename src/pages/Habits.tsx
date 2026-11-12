@@ -61,7 +61,7 @@ function HabitDialog({ habit, onClose }: { habit?: Habit; onClose: () => void })
             <Input value={f.unit} placeholder="pages, glasses, km…" onChange={(e) => setF({ ...f, unit: e.target.value })} />
           </Field>
         )}
-        <Field label="Days" hint="No days selected means every day. Other days are rest days and never break a streak." className="col-span-2">
+        <Field group label="Days" hint="No days selected means every day. Other days are rest days and never break a streak." className="col-span-2">
           <div className="flex gap-1">
             {order.map((d) => {
               const on = f.weekdays.includes(d);

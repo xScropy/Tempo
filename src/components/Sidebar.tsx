@@ -52,7 +52,7 @@ const ITEMS: Array<{ page: Page; label: string; icon: typeof Inbox }> = [
   { page: "analytics", label: "Analytics", icon: BarChart3 },
   { page: "rewards", label: "Rewards", icon: Trophy },
   { page: "journal", label: "Journal", icon: BookOpen },
-  { page: "friends", label: "Friends", icon: Users },
+  { page: "friends", label: "Social", icon: Users },
 ];
 
 export function TimerChip({ compact }: { compact?: boolean }) {

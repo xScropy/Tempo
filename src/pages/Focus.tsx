@@ -50,7 +50,7 @@ function Setup() {
             <Input type="number" min={1} max={720} value={minutes[mode]} onChange={(e) => setMinutes({ ...minutes, [mode]: Math.max(1, Math.min(720, Number(e.target.value) || 1)) })} />
           </Field>
         )}
-        <Field label="Task">
+        <Field group label="Task">
           <TaskPicker value={taskId} onChange={setTaskId} />
         </Field>
         {!task && (
@@ -277,7 +277,7 @@ export function EntryDialog({ entry, onClose }: { entry?: TimeEntry; onClose: ()
         <Field label="Duration" hint={!f.seconds ? undefined : inFuture ? `Ends ${timeOf(ended)} — that is in the future. Move the start earlier.` : `Ends ${timeOf(ended)}`}>
           <DurationInput value={f.seconds} onChange={(v) => setF({ ...f, seconds: v })} placeholder="45m" />
         </Field>
-        <Field label="Task" className="col-span-3">
+        <Field group label="Task" className="col-span-3">
           <TaskPicker value={f.taskId} onChange={(id) => setF({ ...f, taskId: id })} placeholder="No task" />
         </Field>
         {!task && (

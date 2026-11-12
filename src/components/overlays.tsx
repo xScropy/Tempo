@@ -210,7 +210,7 @@ export function ProjectDialog() {
         <Field label="Weekly time target">
           <DurationInput value={f.weekly} onChange={(v) => setF({ ...f, weekly: v })} placeholder="e.g. 12h" />
         </Field>
-        <Field label="Color" className="col-span-2">
+        <Field group label="Color" className="col-span-2">
           <div className="flex gap-1.5">
             {COLORS.map((c) => (
               <button key={c} type="button" aria-label={`Color ${c}`} aria-pressed={f.color === c} onClick={() => setF({ ...f, color: c })} className={cx("h-6 w-6 rounded", f.color === c && "ring-2 ring-ink ring-offset-2 ring-offset-surface")} style={{ background: c }} />
@@ -233,7 +233,7 @@ interface Hit {
 const NAV: Array<{ page: Page; label: string }> = [
   { page: "dashboard", label: "Dashboard" }, { page: "inbox", label: "Inbox" }, { page: "tasks", label: "My Tasks" }, { page: "projects", label: "Projects" },
   { page: "calendar", label: "Calendar" }, { page: "focus", label: "Focus" }, { page: "habits", label: "Habits" }, { page: "goals", label: "Goals" },
-  { page: "analytics", label: "Analytics" }, { page: "rewards", label: "Rewards" }, { page: "journal", label: "Journal" }, { page: "friends", label: "Friends" }, { page: "settings", label: "Settings" },
+  { page: "analytics", label: "Analytics" }, { page: "rewards", label: "Rewards" }, { page: "journal", label: "Journal" }, { page: "friends", label: "Social" }, { page: "settings", label: "Settings" },
 ];
 
 /** Global search across tasks, projects, notes, sessions, journal, tags and categories. */

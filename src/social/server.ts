@@ -111,7 +111,8 @@ const interval = z.object({ id: idStr, start: z.number().int(), end: z.number().
 const S = {
   register: z.object({ username, ...profileFields }),
   login: z.object({ userId: idStr, token: z.string().min(16).max(200) }),
-  "profile.update": z.object(profileFields).partial(),
+  // Privacy is merged key by key, so two quick toggles can never overwrite each other.
+  "profile.update": z.object({ ...profileFields, privacy: privacy.partial().optional() }).partial(),
   "invite.rotate": z.object({}),
   "friend.search": z.object({ query: z.string().trim().min(1).max(40) }),
   "friend.request": z.object({ username: username.optional(), inviteCode: z.string().trim().max(20).optional() }),
@@ -581,7 +582,9 @@ export class SocialServer {
       "profile.update": (d) => {
         const u = this.user(me);
         const before = JSON.stringify(u.privacy);
-        Object.assign(u, Object.fromEntries(Object.entries(d).filter(([, v]) => v !== undefined)));
+        const { privacy: patch, ...rest } = d;
+        Object.assign(u, Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== undefined)));
+        if (patch) u.privacy = { ...u.privacy, ...Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined)) };
         this.changed();
         if (before !== JSON.stringify(u.privacy)) this.broadcastPresence(me);
         this.refresh(me, ...this.audience(me));

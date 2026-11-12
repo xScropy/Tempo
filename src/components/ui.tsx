@@ -76,13 +76,25 @@ export function Select({ className, children, ...rest }: SelectHTMLAttributes<HT
   );
 }
 
-export function Field({ label, hint, children, className }: { label: string; hint?: string; children: ReactNode; className?: string }) {
-  return (
-    <label className={cx("block", className)}>
+/**
+ * A labelled form field. Use `group` when the content is several controls
+ * (a row of toggle buttons, chips): a <label> must wrap exactly one control,
+ * otherwise every button inside it is announced with the label's name.
+ */
+export function Field({ label, hint, children, className, group }: { label: string; hint?: string; children: ReactNode; className?: string; group?: boolean }) {
+  const body = (
+    <>
       <span className="mb-1 block text-xs font-medium text-ink-2">{label}</span>
       {children}
       {hint && <span className="mt-1 block text-xs text-ink-3">{hint}</span>}
-    </label>
+    </>
+  );
+  return group ? (
+    <div role="group" aria-label={label} className={cx("block", className)}>
+      {body}
+    </div>
+  ) : (
+    <label className={cx("block", className)}>{body}</label>
   );
 }
 

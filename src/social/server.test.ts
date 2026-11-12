@@ -172,7 +172,10 @@ describe("presence", () => {
     await a.call("presence", { status: "focusing", mode: "deep", plannedMs: 90 * MIN, elapsedMs: 0 });
     expect((await b.state()).friends[0]!.presence).toEqual({ status: "online", lastSeen: T0 });
     expect(b.notes()).not.toContain("started a focus session");
-    await a.call("profile.update", { privacy: { ...DEFAULT_PRIVACY, sessionTime: false, objective: true } });
+    // toggles are merged one key at a time
+    await a.call("profile.update", { privacy: { activity: true } });
+    await a.call("profile.update", { privacy: { sessionTime: false } });
+    await a.call("profile.update", { privacy: { objective: true } });
     await a.call("presence", { status: "focusing", mode: "deep", plannedMs: 90 * MIN, elapsedMs: 0, objective: "Reading" });
     const p = (await b.state()).friends[0]!.presence;
     expect(p).toMatchObject({ status: "focusing", objective: "Reading" });

@@ -91,7 +91,7 @@ export function RecurrenceDialog({ task, onClose }: { task: Task; onClose: () =>
           <Input type="number" min={1} max={365} value={rule.interval} onChange={(e) => set({ interval: Math.max(1, Number(e.target.value) || 1) })} />
         </Field>
         {rule.freq === "weekly" && (
-          <Field label="On" className="col-span-2">
+          <Field group label="On" className="col-span-2">
             <div className="flex gap-1">
               {order.map((d) => {
                 const on = rule.weekdays.includes(d);
