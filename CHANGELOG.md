@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.2.0 — 2026-11-12
+
+Added — **Social** (optional; see docs/SOCIAL.md)
+- Friends: usernames, invitation codes, requests (send, accept, decline, cancel), remove, block.
+- Live presence: Online, Focusing, On break, Idle, Offline with last seen; session type, elapsed and remaining time, updating without a refresh. Offline is detected from missed heartbeats, not from the window being open.
+- Shared statistics per friend: weekly focus, sessions, productive days, weekly goal progress, daily chart; this week / last week / this month.
+- Leaderboard by focus hours, completed sessions, weekly goal completion, streak or consistency, with change in rank since last week.
+- Challenges: focus hours, weekly goal, Pomodoro, consistency and custom; invitation and explicit join; live standings; history; a per-challenge rule for which time counts.
+- Focus Together: private, invitation-only rooms with a shared timer that can start your own timer, live statuses, reactions, group totals.
+- Activity feed with reactions; badges and personal records on your profile.
+- Privacy controls for every shared statistic; notification categories, per-friend mute, quiet hours, and holding notifications while focusing.
+- Two ways to connect: host on this computer for friends on the same network, or join a self-hosted server (`tempo-social-server.cjs`, Dockerfile and `render.yaml` included).
+
+Task titles, projects, notes, calendar events and journal entries are never sent; the protocol has no field for them.
+
+Fixed
+- Groups of buttons inside a form label (weekday pickers, colour pickers, friend chips) were each announced with the label's name to assistive technology.
+
 ## 0.1.1 — 2026-11-12
 
 Fixed

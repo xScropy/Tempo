@@ -55,14 +55,9 @@ Editing one occurrence marks it `is_detached`; series edits skip detached and co
 
 **9. No opaque scores.** Project health is a status plus the plain-language reasons that produced it. Analytics shows measured quantities only.
 
-## Social features (Phase 7 — designed, not built)
+## Social layer
 
-Kept outside the core on purpose: the core never needs the network.
-
-- **What can be shared** is already implemented and visible in Friends: an aggregate weekly summary built from the user's sharing choices. Task titles, notes, project details, calendar events and logs are not in that structure at all.
-- **Local network mode:** mDNS discovery + a TCP/WebSocket listener in the Rust shell; devices exchange signed summaries directly. Works only on the same LAN.
-- **Remote mode:** two home networks cannot reliably reach each other without infrastructure. Options: (a) WebRTC/hole-punching — needs at least a signalling/STUN service and still fails behind symmetric NATs; (b) an end-to-end-encrypted relay that forwards opaque blobs — always works, but someone must run it. The relay would be optional and self-hostable.
-- Shared focus rooms need a common clock: the host broadcasts `startedAt` + `plannedMs` (the same timestamp model as the local timer) rather than ticks.
+Built as a separate layer in `src/social/`; the core never depends on it. One `SocialServer` class holds all the logic and runs either inside a friend's app (LAN hosting, with `src-tauri/src/lan.rs` relaying WebSocket frames) or in the standalone Node server (`server/main.ts`). The app-side client only *observes* the timer and time entries and never writes to them. Full design, protocol, privacy model and limits: [docs/SOCIAL.md](docs/SOCIAL.md).
 
 ## Risks and limits
 

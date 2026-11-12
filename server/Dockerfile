@@ -11,7 +11,7 @@ RUN npm run build:server
 
 FROM node:22-alpine
 WORKDIR /app
-COPY --from=build /app/server/dist/server.cjs ./server.cjs
+COPY --from=build /app/server/dist/tempo-social-server.cjs ./server.cjs
 ENV PORT=47800 DATA_DIR=/data
 VOLUME /data
 EXPOSE 47800

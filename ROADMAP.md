@@ -38,10 +38,12 @@ Levels, tokens, daily quests, achievements and a reward shop. XP comes only from
 
 - 🟡 Un-completing a task after spending its tokens can leave a negative balance; it is shown as-is rather than hidden.
 
-## Phase 7 — Social ⬜
-Built: local profile, sharing preferences, and a copyable weekly aggregate summary.
-Not built: friends, invitations, groups, challenges, leaderboards, shared focus rooms, and any networking (LAN or remote). The approach and trade-offs are in ARCHITECTURE.md.
-PRD acceptance tests 19 and 20 (two users on one LAN) are therefore **not met**.
+## Phase 7 — Social 🟡
+Friends, live presence, shared statistics, leaderboards, challenges, focus rooms, activity feed, privacy and notification controls — built and verified with two users against the real server (`e2e/social.cjs`). Details, trade-offs and what is not built: [docs/SOCIAL.md](docs/SOCIAL.md).
+
+- 🟡 LAN hosting inside the desktop app is tested at the relay level, not yet on two physical machines.
+- 🟡 Remote friends need someone to run the included server; no public server is provided.
+- ⬜ Profile pictures, standalone groups, chat, automatic LAN discovery, account deletion on the server.
 
 ## Phase 8 — Polish and release ⬜
 - 🟡 Windows installer: built by CI and attached to GitHub releases; not yet installed and tested on a Windows machine, and not code-signed (Windows SmartScreen will warn).
@@ -66,4 +68,5 @@ PRD acceptance tests 19 and 20 (two users on one LAN) are therefore **not met**.
 | 16 | Notes on a task and a session | ✅ | e2e |
 | 17 | Export and restore | ✅ | `store.test.ts`, e2e |
 | 18 | Fully offline | ✅ | no network code; assets bundled |
-| 19–20 | LAN connection; private data never shared | ⬜ | Phase 7 |
+| 19 | Two users connected | 🟡 | `e2e/social.cjs` (two browsers, real server); in-app LAN hosting not yet tried on two machines |
+| 20 | Private task details never shared | ✅ | `server.test.ts`, `e2e/social.cjs` |

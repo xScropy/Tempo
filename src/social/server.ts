@@ -276,6 +276,8 @@ export class SocialServer {
   private broadcastPresence(id: string) {
     const presence = this.presenceFor(id);
     for (const f of this.audience(id)) if (!this.blockedEither(id, f)) this.push(f, { t: "presence", userId: id, presence, serverNow: this.now() });
+    // The owner sees their own unreduced status (e.g. in a focus room).
+    this.push(id, { t: "presence", userId: id, presence: this.rawPresence(id), serverNow: this.now() });
   }
 
   private closeFocusLog(id: string, at: number) {

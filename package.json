@@ -1,7 +1,7 @@
 {
   "name": "tempo",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,9 +10,9 @@
     "typecheck": "tsc --noEmit && tsc --noEmit -p server",
     "test": "vitest run",
     "tauri": "tauri",
-    "e2e": "node e2e/core-flows.cjs && node e2e/planning-and-data.cjs && node e2e/rewards.cjs",
-    "build:server": "esbuild server/main.ts --bundle --platform=node --target=node20 --format=cjs --outfile=server/dist/server.cjs",
-    "server": "npm run build:server && node server/dist/server.cjs"
+    "e2e": "node e2e/core-flows.cjs && node e2e/planning-and-data.cjs && node e2e/rewards.cjs && node e2e/social.cjs",
+    "build:server": "esbuild server/main.ts --bundle --platform=node --target=node20 --format=cjs --outfile=server/dist/tempo-social-server.cjs",
+    "server": "npm run build:server && node server/dist/tempo-social-server.cjs"
   },
   "dependencies": {
     "@radix-ui/react-context-menu": "^2.4.1",

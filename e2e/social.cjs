@@ -12,7 +12,7 @@ const PORT = 47899;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
-  let server = spawn('node', ['server/dist/server.cjs'], { env: { ...process.env, PORT: String(PORT), DATA_DIR: S }, stdio: 'ignore' });
+  let server = spawn('node', ['server/dist/tempo-social-server.cjs'], { env: { ...process.env, PORT: String(PORT), DATA_DIR: S }, stdio: 'ignore' });
   await sleep(700);
   const browser = await chromium.launch();
   const errors = [];
@@ -141,6 +141,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     await A.getByRole('button', { name: /Stop|Finish/ }).first().click();
     await A.getByRole('button', { name: 'Skip', exact: true }).click().catch(() => {});
     await A.getByRole('tab', { name: 'Time log' }).click();
+    await A.getByRole('main').locator('.group').first().waitFor();
     const n = await A.getByRole('main').locator('.group').count();
     if (n !== 1) throw new Error(`expected exactly 1 local time entry for A, found ${n}`);
     await nav(A, 'My Tasks');
@@ -149,7 +150,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     await A.getByText('Works offline').waitFor();
   });
   await step('reconnects on its own when the server returns', async () => {
-    server = spawn('node', ['server/dist/server.cjs'], { env: { ...process.env, PORT: String(PORT), DATA_DIR: S }, stdio: 'ignore' });
+    server = spawn('node', ['server/dist/tempo-social-server.cjs'], { env: { ...process.env, PORT: String(PORT), DATA_DIR: S }, stdio: 'ignore' });
     await nav(A, 'Social');
     await A.getByText('Friends online').waitFor({ timeout: 45000 });
     await A.getByText('@ahmed').first().waitFor();
