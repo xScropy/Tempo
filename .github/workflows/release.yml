@@ -40,9 +40,9 @@ jobs:
           prerelease: true
           files: ${{ matrix.files }}
           body: |
-            First public build of Tempo — a local-first desktop app for tasks, projects, focus sessions, time tracking, calendar, habits, goals and reports.
+            Tempo — a local-first desktop app for tasks, projects, focus sessions, time tracking, calendar, habits, goals and reports.
 
-            **Install (Windows):** download `Tempo_*_x64-setup.exe` and run it. The installer is not code-signed, so Windows SmartScreen will warn; choose "More info" → "Run anyway".
+            **Install (Windows):** download `Tempo_*_x64-setup.exe` and run it over your existing install; your data is kept. The installer is not code-signed, so Windows SmartScreen will warn; choose "More info" → "Run anyway".
             **Install (Debian/Ubuntu):** `sudo apt install ./Tempo_*_amd64.deb`
 
-            This is a pre-release. The installers are produced by CI and have not yet been tested on a clean machine. Friends/networking features are not included. See CHANGELOG.md and ROADMAP.md for what is and is not built.
+            What changed is in CHANGELOG.md. This is a pre-release: installers are produced by CI. See ROADMAP.md for what is and is not built.

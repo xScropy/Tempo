@@ -1,6 +1,6 @@
 [package]
 name = "tempo"
-version = "0.1.0"
+version = "0.1.1"
 description = "Tempo — personal productivity, project management and time intelligence"
 edition = "2021"
 

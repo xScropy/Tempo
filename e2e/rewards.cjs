@@ -19,7 +19,7 @@ const BASE = process.env.TEMPO_URL || 'http://localhost:4173';
     for (let i = 0; i < 3; i++) await page.getByRole('main').getByRole('checkbox', { name: 'Mark as done' }).first().click();
     await nav('Rewards');
     await page.getByText('3/3').waitFor();               // "Complete 3 tasks" quest
-    await page.getByText('45 / 100 XP').waitFor();        // 3 × 10 + 15 quest bonus
+    await page.getByText('55 XP', { exact: true }).waitFor();     // 45 XP earned (3 × 10 + 15 quest bonus), 55 to go
     await page.getByText('4 earned · 0 spent').waitFor();
   });
   await step('rewards: cannot overspend, can redeem what is affordable', async () => {

@@ -41,7 +41,7 @@ export function TaskCheck({ task, size = 16 }: { task: Task; size?: number }) {
       )}
     >
       {done && (
-        <svg viewBox="0 0 12 12" width={size - 6} height={size - 6} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="check-pop" viewBox="0 0 12 12" width={size - 6} height={size - 6} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M2.5 6.2l2.4 2.4 4.6-5" />
         </svg>
       )}

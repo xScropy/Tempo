@@ -37,6 +37,7 @@ export interface Settings {
   lastAutoBackup: number;
   /** levels, tokens, quests and rewards */
   gamification: boolean;
+  rewardSounds: boolean;
   share: { focusTime: boolean; sessions: boolean; tasksCompleted: boolean; streak: boolean; goals: boolean };
 }
 
@@ -50,6 +51,7 @@ export const WIDGETS: Array<{ id: string; title: string }> = [
   { id: "habits", title: "Habits today" },
   { id: "categories", title: "Time by category" },
   { id: "activity", title: "Recent activity" },
+  { id: "quests", title: "Today's quests" },
 ];
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -73,6 +75,7 @@ export const DEFAULT_SETTINGS: Settings = {
   backupKeep: 14,
   lastAutoBackup: 0,
   gamification: true,
+  rewardSounds: true,
   share: { focusTime: true, sessions: true, tasksCompleted: true, streak: true, goals: false },
 };
 

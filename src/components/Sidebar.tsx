@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, Moon, Sun, Trophy, CalendarDays, CheckSquare, Folder, Inbox, LayoutDashboard, PanelLeftClose, PanelLeftOpen, Pause, Play, Plus, Repeat2, Search, Settings, Square, Target, Timer, Users } from "lucide-react";
+import { BarChart3, BookOpen, Coins, Moon, Sun, Trophy, CalendarDays, CheckSquare, Folder, Inbox, LayoutDashboard, PanelLeftClose, PanelLeftOpen, Pause, Play, Plus, Repeat2, Search, Settings, Square, Target, Timer, Users } from "lucide-react";
 import { fmtClock } from "@/domain/dates";
 import { isRunning, remainingMs } from "@/domain/timer";
 import { isOverdue } from "@/domain/projects";
@@ -8,34 +8,34 @@ import { setSetting } from "@/store/actions";
 import { useData } from "@/store/data";
 import { pauseSession, resumeSession, stopSession, timerElapsed, useTimer } from "@/store/timer";
 import { navigate, openQuickAdd, openSearch, useUi, type Page } from "@/store/ui";
-import { useEffect, useRef } from "react";
 import { levelTitle } from "@/domain/game";
-import { toast } from "@/lib/notify";
 import { useGame } from "@/pages/Rewards";
 import { IconButton, Progress, cx } from "./ui";
 
-/** Level and token summary; announces level-ups as they happen. */
+/** Level and token summary. Bumps whenever XP is gained. */
 function LevelChip({ compact }: { compact: boolean }) {
   const g = useGame();
-  const prev = useRef(g.level.level);
-  useEffect(() => {
-    if (g.level.level > prev.current) toast(`Level ${g.level.level} reached`, `You are now "${levelTitle(g.level.level)}". Keep going.`, "ok");
-    prev.current = g.level.level;
-  }, [g.level.level]);
   if (compact) {
     return (
-      <button type="button" title={`Level ${g.level.level} · ${g.tokens} tokens`} onClick={() => navigate("rewards")} className="tabular mx-auto mb-1 flex h-7 w-9 items-center justify-center rounded border border-line text-2xs font-semibold text-ink-2 hover:bg-hover">
+      <button key={g.totals.xp} type="button" title={`Level ${g.level.level} · ${g.tokens} tokens`} onClick={() => navigate("rewards")} className="bump tabular mx-auto mb-1 flex h-7 w-9 items-center justify-center rounded border border-line text-2xs font-semibold text-ink-2 hover:bg-hover">
         L{g.level.level}
       </button>
     );
   }
   return (
-    <button type="button" onClick={() => navigate("rewards")} className="mx-2 mb-2 block rounded-md border border-line px-2 py-1.5 text-left hover:bg-hover/60">
-      <div className="flex items-baseline justify-between text-xs">
-        <span className="font-medium">Level {g.level.level}</span>
-        <span className="tabular text-ink-2">{g.tokens} token{g.tokens === 1 ? "" : "s"}</span>
+    <button key={g.totals.xp} type="button" onClick={() => navigate("rewards")} className="bump mx-2 mb-2 block rounded-md border border-line bg-surface px-2.5 py-2 text-left hover:border-line-strong">
+      <div className="flex items-center justify-between text-xs">
+        <span className="flex items-center gap-1.5 font-semibold">
+          <span className="tabular flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-2xs text-accent-ink">{g.level.level}</span>
+          {levelTitle(g.level.level)}
+        </span>
+        <span className="tabular inline-flex items-center gap-1 text-ink-2">
+          <Coins size={11} className="text-warn" />
+          {g.tokens}
+        </span>
       </div>
-      <Progress value={g.level.fraction} className="mt-1" />
+      <Progress value={g.level.fraction} className="mt-1.5" />
+      <div className="tabular mt-1 text-2xs text-ink-3">{g.level.needed - g.level.into} XP to level {g.level.level + 1}</div>
     </button>
   );
 }
@@ -104,7 +104,16 @@ export function Sidebar() {
   return (
     <nav aria-label="Main" className={cx("no-print flex shrink-0 flex-col border-r border-line bg-raised transition-[width] duration-150", collapsed ? "w-[52px]" : "w-[216px]")}>
       <div className={cx("flex h-[52px] shrink-0 items-center", collapsed ? "justify-center" : "justify-between px-3")}>
-        {!collapsed && <span className="text-base font-semibold tracking-tight">Tempo</span>}
+        {!collapsed && (
+          <span className="flex items-center gap-2 text-base font-semibold tracking-tight">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden>
+              <rect width="24" height="24" rx="6" fill="rgb(var(--accent))" />
+              <path d="M12 5.5a6.5 6.5 0 1 1-6.5 6.5" fill="none" stroke="rgb(var(--accent-ink))" strokeWidth="2.2" strokeLinecap="round" />
+              <circle cx="12" cy="12" r="1.7" fill="rgb(var(--accent-ink))" />
+            </svg>
+            Tempo
+          </span>
+        )}
         <IconButton label={collapsed ? "Expand sidebar" : "Collapse sidebar"} onClick={() => void attempt(() => setSetting("sidebarCollapsed", !collapsed))}>
           {collapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
         </IconButton>

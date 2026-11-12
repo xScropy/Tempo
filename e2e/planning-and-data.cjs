@@ -40,7 +40,7 @@ const BASE = process.env.TEMPO_URL || 'http://localhost:4173';
     await page.getByRole('dialog').getByRole('button', { name: 'Save' }).click();
     await page.getByLabel('Add min for English').fill('45'); await page.getByRole('button', { name: 'Add', exact: true }).click();
     await page.getByText('45/60 min').waitFor(); await page.waitForTimeout(500);
-    const w = await page.getByRole('progressbar').first().getAttribute('aria-valuenow');
+    const w = await page.getByRole('main').getByRole('progressbar').first().getAttribute('aria-valuenow');
     if (w !== '75') throw new Error('progress ' + w);
   });
   let exported;

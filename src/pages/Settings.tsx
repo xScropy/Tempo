@@ -80,6 +80,7 @@ async function importJson() {
       throw new Error("That file is not valid JSON");
     }
     await importAll(parsed);
+    await restoreTimer(); // the import replaced everything, including any running timer
   });
   if (done) toast("Data restored", "The export file was imported.", "ok");
 }
@@ -151,6 +152,9 @@ export function SettingsPage() {
             </div>
             <div className="border-t border-line px-3 py-3">
               <Toggle k="gamification" label="Levels, tokens, daily quests and rewards" />
+              <div className="mt-2">
+                <Toggle k="rewardSounds" label="Play a short chime when XP is earned" />
+              </div>
             </div>
           </Section>
 

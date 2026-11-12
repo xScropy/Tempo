@@ -14,7 +14,9 @@ import { startSession } from "@/store/timer";
 import { navigate, openQuickAdd, openTask, useUi } from "@/store/ui";
 import { TaskList } from "@/components/task-bits";
 import { Button, IconButton, PageHeader, Progress, Section, Stat, cx } from "@/components/ui";
+import { EMPTY_DAY, XP_RULES, questsFor } from "@/domain/game";
 import { HealthBadge, projectStats } from "./Projects";
+import { useGame } from "./Rewards";
 
 const None = ({ children }: { children: React.ReactNode }) => <div className="px-3 py-5 text-center text-sm text-ink-2">{children}</div>;
 
@@ -256,7 +258,31 @@ function Activity() {
   );
 }
 
+function Quests() {
+  const { today } = useWeek();
+  const g = useGame();
+  const on = useData((s) => s.settings.gamification);
+  if (!on) return <None>Levels and quests are switched off in Settings.</None>;
+  const quests = questsFor(g.days.get(today) ?? EMPTY_DAY);
+  return (
+    <button type="button" className="block w-full text-left" onClick={() => navigate("rewards")}>
+      {quests.map((q) => (
+        <div key={q.id} className="border-b border-line px-3 py-2 last:border-0">
+          <div className="flex items-center gap-2">
+            <span className={cx("flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-[1.5px]", q.done ? "border-accent bg-accent text-accent-ink" : "border-ink-3")}>{q.done && <Check size={10} strokeWidth={3} />}</span>
+            <span className={cx("flex-1", q.done && "text-ink-2 line-through")}>{q.label}</span>
+            <span className="tabular text-xs text-ink-2">{q.done ? `+${XP_RULES.perQuest} XP` : `${q.current}/${q.goal}`}</span>
+          </div>
+          <Progress value={q.current / q.goal} tone={q.done ? "ok" : "accent"} className="ml-6 mt-1.5" />
+        </div>
+      ))}
+      <div className="tabular px-3 py-2 text-xs text-ink-2">Level {g.level.level} · {g.level.needed - g.level.into} XP to the next level · {g.tokens} tokens</div>
+    </button>
+  );
+}
+
 const BODY: Record<string, () => React.ReactNode> = {
+  quests: () => <Quests />,
   schedule: () => <Schedule />, priority: () => <PriorityTasks />, projects: () => <ActiveProjects />, focus: () => <FocusWeek />, targets: () => <Targets />,
   deadlines: () => <Deadlines />, habits: () => <HabitsToday />, categories: () => <Categories />, activity: () => <Activity />,
 };
@@ -271,6 +297,9 @@ export function DashboardPage() {
   const projects = useData((s) => s.projects);
   const [editing, setEditing] = useState(false);
   const layout = settings.dashboard;
+  const name = useData((s) => s.profile?.display_name);
+  const hour = new Date().getHours();
+  const greeting = `${hour < 5 ? "Still up" : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"}${name ? `, ${name.split(" ")[0]}` : ""}`;
 
   const m = useMemo(() => {
     const dayFrom = dayStartMs(today);
@@ -310,7 +339,7 @@ export function DashboardPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <PageHeader title={`${["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][dt.getDay()]}, ${dt.getDate()} ${monthName(dt.getMonth())}`} subtitle={m.remaining ? `${m.remaining} task${m.remaining === 1 ? "" : "s"} left for today` : m.doneToday ? "Everything for today is done" : "Nothing due today"}>
+      <PageHeader title={greeting} subtitle={`${["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][dt.getDay()]} ${dt.getDate()} ${monthName(dt.getMonth())} · ` + (m.remaining ? `${m.remaining} task${m.remaining === 1 ? "" : "s"} left for today` : m.doneToday ? "Everything for today is done" : "Nothing due today")}>
         <Button icon={<Plus size={14} />} onClick={() => openQuickAdd({ due_date: today })}>Task</Button>
         <Button icon={<FolderPlus size={14} />} onClick={() => useUi.setState({ projectDialog: { parentId: null } })}>Project</Button>
         <Button icon={<Repeat2 size={14} />} onClick={() => navigate("habits")}>Habit</Button>

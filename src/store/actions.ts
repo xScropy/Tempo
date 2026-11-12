@@ -413,7 +413,10 @@ export async function updateSession(id: string, patch: Partial<Pick<FocusSession
   await mutate([updateStmt("focus_sessions", id, { ...v, updated_at: now() })], ["focus_sessions"]);
 }
 
-export const deleteSession = (id: string) => mutate([deleteStmt("focus_sessions", id)], ["focus_sessions", "time_entries"]);
+export async function deleteSession(id: string): Promise<void> {
+  if (data().sessions.find((s) => s.id === id)?.status === "active") throw new Error("This session is still running. Stop the timer first, then delete it.");
+  await mutate([deleteStmt("focus_sessions", id)], ["focus_sessions", "time_entries"]);
+}
 
 // ---- calendar ---------------------------------------------------------------
 

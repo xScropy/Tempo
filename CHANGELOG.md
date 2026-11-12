@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.1 — 2026-11-12
+
+Fixed
+- **Timer could get permanently stuck with "FOREIGN KEY constraint failed"** when pausing, stopping or starting a session. This happened once the running timer pointed at something that no longer existed — its task, project, category or activity had been deleted while it ran, or its session had been removed (from the time log, or by restoring data). Every later pause/stop then failed the same way, and a finished countdown retried every second.
+  - Time is now recorded even if the task or project is gone (the entry is kept, unassigned), and a missing session record is recreated.
+  - The running session can no longer be deleted from the time log.
+  - Restoring data clears any running timer.
+  - As a last resort, a session that cannot be saved resets the timer instead of leaving it unstoppable.
+
+Added
+- Reward feedback: "+XP" pops as you earn, confetti and a chime for finished quests, a level-up card, celebration when redeeming a reward. Sounds can be turned off; motion respects the system "reduce motion" setting.
+- Rewards page: level ring, current focus streak, and the next reward to work toward with how many minutes of focus it is away.
+- "Today's quests" dashboard widget, a greeting using your profile name, and a Tempo mark in the sidebar.
+
 ## 0.1.0 — 2026-11-12
 
 First release (pre-release): roadmap phases 1–6.

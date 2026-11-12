@@ -9,6 +9,7 @@ import { generateOccurrences, setSetting } from "@/store/actions";
 import { data, reload, useData } from "@/store/data";
 import { pauseSession, restoreTimer, resumeSession, startSession, tick, useTimer } from "@/store/timer";
 import { PAGES, navigate, openQuickAdd, openSearch, openTask, useUi, type Page } from "@/store/ui";
+import { Celebrations } from "@/components/Celebrations";
 import { Sidebar } from "@/components/Sidebar";
 import { TaskDetail } from "@/components/TaskDetail";
 import { ConfirmHost, GapDialog, ProjectDialog, QuickAdd, SearchPalette, SessionReview, Toasts } from "@/components/overlays";
@@ -149,6 +150,7 @@ export function App() {
   const taskId = useUi((s) => s.taskId);
   const focusMode = useUi((s) => s.focusMode);
   const mini = useUi((s) => s.mini);
+  const gamified = useData((s) => s.settings.gamification);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -189,6 +191,7 @@ export function App() {
       <GapDialog />
       <SessionReview />
       <ConfirmHost />
+      {gamified && <Celebrations />}
       <Toasts />
     </div>
   );

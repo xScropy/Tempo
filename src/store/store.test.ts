@@ -373,3 +373,55 @@ describe("levels and tokens", () => {
     expect(data().redemptions).toHaveLength(1);
   });
 });
+
+describe("timer never gets stuck on stale references", () => {
+  it("pauses and stops after its task and project were deleted, keeping the time", async () => {
+    const p = await a.createProject({ name: "Doomed" });
+    const t = await a.createTask({ title: "Doomed task", project_id: p });
+    await startSession({ mode: "pomodoro", taskId: t });
+    advance(10 * MIN);
+    await a.deleteTask(t);
+    await a.deleteProject(p);
+    await pauseSession();
+    await resumeSession();
+    advance(5 * MIN);
+    await stopSession();
+    expect(useTimer.getState().timer).toBeNull();
+    const total = data().entries.reduce((s, e) => s + (e.ended_at - e.started_at), 0);
+    expect(total).toBe(15 * MIN);
+    expect(data().entries.every((e) => e.task_id === null && e.project_id === null)).toBe(true);
+  });
+
+  it("recovers when the session row itself is gone, and a new session can start", async () => {
+    await startSession({ mode: "stopwatch" });
+    advance(20 * MIN);
+    await db().execute("DELETE FROM focus_sessions");
+    await startSession({ mode: "pomodoro" }); // stops the broken one first
+    expect(data().sessions.length).toBe(2);
+    expect(data().entries.length).toBe(1);
+    expect(sessionSeconds(data().sessions.find((s) => s.mode === "stopwatch")!.id, data().entries)).toBe(20 * 60);
+    advance(25 * MIN);
+    await tick();
+    expect(data().sessions.find((s) => s.mode === "pomodoro")!.status).toBe("completed");
+  });
+
+  it("refuses to delete the session that is currently running", async () => {
+    await startSession({ mode: "stopwatch" });
+    advance(5 * MIN);
+    await pauseSession();
+    await expect(a.deleteSession(data().sessions[0]!.id)).rejects.toThrow(/running/);
+  });
+
+  it("a restore while a timer runs clears the timer instead of leaving it dangling", async () => {
+    const file = JSON.parse(JSON.stringify(await a.exportAll()));
+    await startSession({ mode: "stopwatch" });
+    advance(5 * MIN);
+    await a.importAll(file);
+    await restoreTimer();
+    expect(useTimer.getState().timer).toBeNull();
+    await startSession({ mode: "stopwatch" });
+    advance(MIN);
+    await stopSession();
+    expect(data().entries.length).toBe(1);
+  });
+});
