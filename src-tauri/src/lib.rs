@@ -5,6 +5,8 @@
 //! management. All schema, migrations and business logic live in TypeScript so
 //! the same code runs against sql.js in the browser dev/test driver.
 
+mod lan;
+
 use rusqlite::{backup::Backup, types::ValueRef, Connection, OpenFlags};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Number, Value};
@@ -14,7 +16,7 @@ use std::{
     sync::Mutex,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
-use tauri::{Manager, State};
+use tauri::{Emitter, Manager, State};
 
 struct Db {
     conn: Mutex<Connection>,
@@ -216,6 +218,64 @@ fn db_location(db: State<'_, Db>) -> String {
     db.dir.to_string_lossy().into_owned()
 }
 
+#[derive(Default)]
+struct LanHost(Mutex<Option<lan::Hub>>);
+
+#[derive(Clone, Serialize)]
+struct LanEvent {
+    kind: &'static str,
+    conn: u64,
+    text: String,
+}
+
+#[derive(Serialize)]
+struct LanInfo {
+    port: u16,
+    /** addresses friends on the same network can use */
+    addresses: Vec<String>,
+}
+
+/// Starts hosting for friends on the local network. Frames are forwarded to the webview as `lan-host` events.
+#[tauri::command]
+async fn lan_host_start(app: tauri::AppHandle, host: State<'_, LanHost>, port: u16) -> CmdResult<LanInfo> {
+    if let Some(old) = host.0.lock().map_err(err)?.take() {
+        old.stop();
+    }
+    let emitter = app.clone();
+    let hub = lan::Hub::start(port, move |e| {
+        let payload = match e {
+            lan::HubEvent::Open(conn) => LanEvent { kind: "open", conn, text: String::new() },
+            lan::HubEvent::Message(conn, text) => LanEvent { kind: "message", conn, text },
+            lan::HubEvent::Close(conn) => LanEvent { kind: "close", conn, text: String::new() },
+        };
+        let _ = emitter.emit("lan-host", payload);
+    })
+    .await
+    .map_err(|e| format!("Could not start hosting on port {port}: {e}"))?;
+    let port = hub.port;
+    let addresses = local_ip_address::list_afinet_netifas()
+        .map(|list| list.into_iter().filter(|(_, ip)| ip.is_ipv4() && !ip.is_loopback()).map(|(_, ip)| format!("ws://{ip}:{port}")).collect())
+        .unwrap_or_default();
+    *host.0.lock().map_err(err)? = Some(hub);
+    Ok(LanInfo { port, addresses })
+}
+
+#[tauri::command]
+fn lan_host_send(host: State<'_, LanHost>, conn: u64, text: String) -> CmdResult<()> {
+    if let Some(hub) = host.0.lock().map_err(err)?.as_ref() {
+        hub.send(conn, text);
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn lan_host_stop(host: State<'_, LanHost>) -> CmdResult<()> {
+    if let Some(hub) = host.0.lock().map_err(err)?.take() {
+        hub.stop();
+    }
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -223,6 +283,7 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
+        .manage(LanHost::default())
         .setup(|app| {
             let dir = app.path().app_data_dir()?;
             fs::create_dir_all(&dir)?;
@@ -237,7 +298,10 @@ pub fn run() {
             backup_create,
             backup_list,
             backup_restore,
-            db_location
+            db_location,
+            lan_host_start,
+            lan_host_send,
+            lan_host_stop
         ])
         .run(tauri::generate_context!())
         .expect("error while running Tempo");

@@ -20,6 +20,10 @@ tauri-plugin-fs = "2"
 rusqlite = { version = "0.32", features = ["bundled", "backup"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+tokio = { version = "1", features = ["net", "sync", "rt", "macros", "time"] }
+tokio-tungstenite = "0.26"
+futures-util = "0.3"
+local-ip-address = "0.6"
 
 [profile.release]
 opt-level = "s"
