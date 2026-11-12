@@ -6,10 +6,19 @@ Optional. Tempo works exactly as before without it, and nothing leaves the devic
 
 | Situation | What to do |
 | --- | --- |
-| Friends on the **same Wi-Fi / network** | One person opens Social → *Host on this computer*. Tempo shows an address such as `ws://192.168.1.20:47800` under Profile → Connection. Everyone else chooses *Join a server* and enters it. It works while the host's Tempo is open; the firewall may ask for permission once. |
-| Friends on **other networks** | Someone runs the small server where everyone can reach it, and all join with its address. Options: `node tempo-social-server.cjs` (attached to each release, needs Node 20+), `docker build -f server/Dockerfile -t tempo-social . && docker run -p 47800:47800 -v tempo-social:/data tempo-social`, or a one-click deploy with the included `render.yaml`. Put it behind TLS and use a `wss://` address. |
+| **Friends anywhere (different networks)** — the default | One person chooses Social → **Start a group** and gets a 16-character code (Profile → Connection). Everyone else chooses **Join with a code**. No account, no server, nothing to install. |
+| Same Wi-Fi, no internet | Social → *Other ways to connect* → **Host on this network** (desktop app). Others enter the `ws://192.168.…` address shown under Profile → Connection. |
+| An always-on group | Run the included server (`node tempo-social-server.cjs`, Docker, or `render.yaml`) and have everyone join with its address under *Other ways to connect*. |
 
-Two home networks cannot reach each other directly; that is a property of the internet, not of Tempo. Remote friends therefore need a server somewhere. It is small, self-hosted, and stores only what users chose to share.
+### How "Start a group" works, and what it costs
+
+The person who starts the group **is** the meeting point: their app runs the group (the same `SocialServer` code as the standalone server), and friends reach it through a public message relay instead of a direct connection — which is what gets through home routers.
+
+- **The group is reachable only while the starter's Tempo is open.** When it is closed, friends see "host is not online" and keep working normally; they reconnect automatically when it returns. If you want a group that is always up, use the standalone server.
+- **The relay is a third party** (public MQTT brokers: `broker.emqx.io`, `broker.hivemq.com`, `test.mosquitto.org`, tried in that order when the group is created). It is treated as untrusted: every frame is encrypted with AES-256-GCM using a key derived from the group code, and the topic is derived from the same code. The relay sees that encrypted messages are exchanged, when, and how large — not what they say. An automated test asserts no username or status is readable on the wire.
+- **The code is the key.** Anyone who has it can join the group and decrypt its traffic, so share it privately. It carries about 74 bits of randomness.
+- **Public relays come with no guarantee.** They are free services that can be slow, rate-limited or unavailable. Delivery is best-effort, so joiners re-read the full state once a minute to self-correct.
+- **Verification status:** the whole path is tested end to end against a real MQTT broker run locally (`e2e/group.cjs`, `src/social/relay.test.ts`). It has **not** been confirmed against the public brokers themselves from the development environment, whose network policy blocks them.
 
 Then: pick a username, review what friends may see, and add friends by username or invitation code.
 
@@ -68,7 +77,7 @@ Server-side state (one JSON document, written atomically) holds the entities of 
 - **Transport:** JSON over WebSocket. Requests get one reply; the server pushes `state`, `presence`, `notify` and `room_timer`. Clients reconnect with backoff (2 s → 30 s).
 - **Presence:** heartbeat every 15 s; a user with no heartbeat for 45 s is offline **even if the socket still looks open**, which is what catches a sleeping or disconnected device. Idle = no keyboard or mouse input for a configurable time (default 5 min). Friends' countdowns are extrapolated from server timestamps, corrected for clock difference.
 - **Authentication:** registering returns a random 256-bit token, stored only on the device; the server keeps its SHA-256 hash.
-- **Encryption:** use `wss://` (TLS) for a remote server. **LAN hosting is plain `ws://`** — fine on a home network you trust, not on public Wi-Fi.
+- **Encryption:** group codes: TLS to the relay plus end-to-end AES-256-GCM between members and host. Standalone server: use `wss://` (TLS). **LAN hosting is plain `ws://`** — fine on a home network you trust, not on public Wi-Fi.
 - **Abuse limits:** 80 requests per 10 s per connection, 600 KB per message, 64 connections on a LAN host.
 - **Validating results:** intervals must be finished, positive, at most 24 h, not in the future, and unique; totals are computed on the server from merged intervals inside the challenge dates only. Challenges choose what counts: *verified* (at least half of the interval overlaps time the server itself saw the user focusing live), *tracked* (timer sessions, no manual entries — the default) or *all*.
   A modified client can still invent timer sessions under *tracked*; only *verified* resists that, and it cannot count work done while offline. This is a friends tool, not an anti-cheat system.
@@ -90,6 +99,7 @@ Not built: profile pictures (avatars are coloured initials), standalone named gr
 
 - `src/social/server.test.ts` — 20 tests: accounts and tokens, friend requests, blocking, rate limiting, presence and heartbeat timeout, privacy filtering, statistics in the user's timezone, all challenge metrics and eligibility policies, frozen results, rooms, feed.
 - `src-tauri/src/lan.rs` — the LAN relay with two real WebSocket clients.
+- `src/social/relay.test.ts` and `e2e/group.cjs` — starting a group and joining by code through a real MQTT broker: encryption on the wire, wrong code rejected, host absent and returning.
 - `e2e/social.cjs` — two users in two browsers against the real server, covering every acceptance criterion: profiles, adding and accepting, online and focusing status with remaining time, switching sharing off, weekly hours, leaderboard, challenge create / join / live standings / leave, a focus room with a shared timer, a check that no task title reached the server, and the tracker continuing to work with the server stopped.
 
 LAN hosting inside the desktop app has been exercised at the relay level only, not end to end on two physical machines.

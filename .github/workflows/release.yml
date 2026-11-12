@@ -49,6 +49,6 @@ jobs:
             **Install (Windows):** download `Tempo_*_x64-setup.exe` and run it over your existing install; your data is kept. The installer is not code-signed, so Windows SmartScreen will warn; choose "More info" → "Run anyway".
             **Install (Debian/Ubuntu):** `sudo apt install ./Tempo_*_amd64.deb`
 
-            **Social server (optional):** to connect with friends on other networks, run `node tempo-social-server.cjs` (Node 20+) on a machine they can reach, or deploy it with the included `render.yaml`. See docs/SOCIAL.md. On the same Wi-Fi no server is needed — one person chooses "Host on this computer".
+            **Friends on other networks:** Social → *Start a group*, send the code, friends choose *Join with a code*. No server needed; the group is reachable while the starter's Tempo is open. For an always-on group, run `node tempo-social-server.cjs` (Node 20+). See docs/SOCIAL.md.
 
             What changed is in CHANGELOG.md. This is a pre-release: installers are produced by CI. See ROADMAP.md for what is and is not built.

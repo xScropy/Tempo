@@ -12,6 +12,8 @@ export interface Driver {
   execute(sql: string, params?: SqlValue[]): Promise<void>;
   /** Runs all statements in one transaction — all succeed or none do. */
   batch(statements: Statement[]): Promise<void>;
+  /** Writes any buffered changes to durable storage now (only the browser driver buffers). */
+  flush?(): void;
 }
 
 export const isTauri = (): boolean => typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -54,17 +56,23 @@ export async function sqljsDriver(opts: { persist: boolean; wasmUrl?: string }):
   db.run("PRAGMA foreign_keys = ON");
 
   let timer: ReturnType<typeof setTimeout> | null = null;
+  let lastFlush = 0;
   const flush = () => {
+    if (timer) clearTimeout(timer);
     timer = null;
+    lastFlush = Date.now();
     // sql.js resets pragmas on export, so foreign keys are re-enabled straight away.
     const bytes = db.export();
     db.run("PRAGMA foreign_keys = ON");
     void idb("readwrite", (s) => s.put(bytes, "main"));
   };
+  // Written through at once, at most every 150 ms. A trailing timer alone could be starved by steady
+  // writes or never run in a closing window, losing the most recent changes.
   const save = () => {
     if (!opts.persist) return;
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(flush, 150);
+    const wait = 150 - (Date.now() - lastFlush);
+    if (wait <= 0) flush();
+    else timer ??= setTimeout(flush, wait);
   };
   if (opts.persist && typeof window !== "undefined") {
     window.addEventListener("pagehide", () => timer && flush());
@@ -87,6 +95,9 @@ export async function sqljsDriver(opts: { persist: boolean; wasmUrl?: string }):
   };
 
   return {
+    flush: () => {
+      if (opts.persist) flush();
+    },
     select: async (sql, params) => select(sql, params),
     execute: async (sql, params) => {
       run(sql, params);

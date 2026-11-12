@@ -5,6 +5,8 @@ import { notify, toast } from "@/lib/notify";
 import { setSetting } from "@/store/actions";
 import { data, useData, type Settings } from "@/store/data";
 import { startSession, useTimer } from "@/store/timer";
+import { brokerOf, formatCode, localLink, newGroupCode, pickBroker, relayClient, relayHost, type Link, type RelayHost } from "./relay";
+import { SocialServer, emptyState } from "./server";
 import { HEARTBEAT_MS, type NotifyKind, type Presence, type PresenceReport, type Privacy, type RoomView, type ServerPush, type SharedInterval, type Snapshot } from "./protocol";
 
 /**
@@ -27,7 +29,8 @@ interface SocialState {
 export const useSocial = create<SocialState>(() => ({ conn: "off", error: null, snap: null, offsetMs: 0, now: Date.now() }));
 
 const SYNC_WINDOW_DAYS = 62;
-let ws: WebSocket | null = null;
+let link: Link | null = null;
+let opening = false;
 let seq = 0;
 let wanted = false;
 let retry = 0;
@@ -44,10 +47,10 @@ if (typeof window !== "undefined") {
 
 function rawCall<T>(t: string, d: unknown = {}): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    if (!ws || ws.readyState !== WebSocket.OPEN) return reject(new Error("Not connected to the social server"));
+    if (!link) return reject(new Error("Not connected"));
     const id = ++seq;
     pending.set(id, { resolve: resolve as (v: unknown) => void, reject });
-    ws.send(JSON.stringify({ id, t, d }));
+    link.send(JSON.stringify({ id, t, d }));
     setTimeout(() => pending.delete(id) && reject(new Error("The server did not answer in time")), 12_000);
   });
 }
@@ -150,7 +153,8 @@ function onPush(msg: ServerPush) {
   void notify(msg.title, msg.body, data().settings.notifications && CATEGORY[msg.kind] !== "friendActivity");
 }
 
-function open(url: string): Promise<void> {
+/** A plain WebSocket to a server address. */
+function wsLink(url: string): Promise<Link> {
   return new Promise((resolve, reject) => {
     let settled = false;
     let sock: WebSocket;
@@ -159,31 +163,57 @@ function open(url: string): Promise<void> {
     } catch {
       return reject(new Error("That server address is not valid. It should look like ws://192.168.1.20:47800 or wss://example.com"));
     }
-    ws = sock;
-    sock.onopen = () => ((settled = true), resolve());
+    const l: Link = { onmessage: null, onclose: null, send: (text) => sock.readyState === WebSocket.OPEN && sock.send(text), close: () => sock.close() };
+    sock.onopen = () => ((settled = true), resolve(l));
     sock.onerror = () => !settled && ((settled = true), reject(new Error("Could not reach the social server at that address")));
-    sock.onmessage = (ev) => {
-      try {
-        const m = JSON.parse(String(ev.data));
-        if ("re" in m) {
-          const p = pending.get(m.re);
-          pending.delete(m.re);
-          if (p) m.ok ? p.resolve(m.data) : p.reject(new Error(m.error ?? "Request failed"));
-        } else onPush(m as ServerPush);
-      } catch {
-        /* ignore malformed frames */
-      }
-    };
-    sock.onclose = () => {
-      if (ws !== sock) return;
-      ws = null;
-      for (const p of pending.values()) p.reject(new Error("Connection lost"));
-      pending.clear();
-      if (!wanted) return;
-      useSocial.setState({ conn: "offline" });
-      retryTimer = setTimeout(() => void connectSocial().catch(() => undefined), Math.min(30_000, 2000 * 2 ** retry++));
-    };
+    sock.onmessage = (ev) => l.onmessage?.(String(ev.data));
+    sock.onclose = () => l.onclose?.();
   });
+}
+
+export const isGroup = (url: string) => url.startsWith("relay:");
+export const groupCode = (url: string) => url.slice("relay:".length);
+
+/** Test hook: point the relay at another broker list (JSON array in localStorage `tempo.relayBrokers`). */
+function brokers(): string[] | undefined {
+  try {
+    const v = typeof localStorage !== "undefined" ? localStorage.getItem("tempo.relayBrokers") : null;
+    return v ? (JSON.parse(v) as string[]) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+async function open(url: string, hosting: boolean): Promise<void> {
+  // The host's own app talks to its in-app server directly; joiners go through the relay; servers over WebSocket.
+  const l = isGroup(url) ? (hosting ? localLink(await hostServer()) : await relayClient(groupCode(url), { brokers: brokers() })) : await wsLink(url);
+  link = l;
+  l.onmessage = (text) => {
+    try {
+      const m = JSON.parse(text);
+      if ("re" in m) {
+        const p = pending.get(m.re);
+        pending.delete(m.re);
+        if (p) m.ok ? p.resolve(m.data) : p.reject(new Error(m.error ?? "Request failed"));
+      } else onPush(m as ServerPush);
+    } catch {
+      /* ignore malformed frames */
+    }
+  };
+  l.onclose = () => {
+    if (link !== l) return;
+    link = null;
+    for (const p of pending.values()) p.reject(new Error("Connection lost"));
+    pending.clear();
+    if (!wanted) return;
+    useSocial.setState({ conn: "offline" });
+    scheduleRetry();
+  };
+}
+
+function scheduleRetry() {
+  if (retryTimer) clearTimeout(retryTimer);
+  retryTimer = setTimeout(() => void connectSocial().catch(() => undefined), Math.min(30_000, 2000 * 2 ** retry++));
 }
 
 function goOnline(snap: Snapshot) {
@@ -201,6 +231,9 @@ function goOnline(snap: Snapshot) {
     // Every heartbeat re-sends presence; without it the server marks us offline.
     if (++n % Math.round(HEARTBEAT_MS / 1000) === 0) sendPresence(true);
     else sendPresence();
+    // The relay does not guarantee delivery, so joiners re-read the full state once a minute.
+    const id = data().settings.social;
+    if (n % 60 === 0 && id && isGroup(id.url) && !id.host) void rawCall<Snapshot>("state.get").then(applySnapshot).catch(() => undefined);
   }, 1000);
 }
 
@@ -209,47 +242,64 @@ export async function connectSocial(): Promise<void> {
   const id = data().settings.social;
   if (!id) return;
   wanted = true;
-  if (ws && ws.readyState <= WebSocket.OPEN) return;
+  if (link || opening) return;
+  opening = true;
   useSocial.setState({ conn: "connecting" });
   try {
-    if (id.host) await startHost(id.port);
-    await open(id.url);
+    if (id.host) await (isGroup(id.url) ? startGroupHost(groupCode(id.url)) : startHost(id.port));
+    await open(id.url, id.host);
     const r = await rawCall<{ state: Snapshot }>("login", { userId: id.userId, token: id.token });
     goOnline(r.state);
   } catch (e) {
     const error = e instanceof Error ? e.message : String(e);
     useSocial.setState({ conn: "offline", error });
-    if (ws) ws.close();
-    else if (wanted) retryTimer = setTimeout(() => void connectSocial().catch(() => undefined), Math.min(30_000, 2000 * 2 ** retry++));
+    const l = link as Link | null;
+    link = null;
+    l?.close();
+    if (wanted) scheduleRetry();
+  } finally {
+    opening = false;
   }
 }
 
 export interface JoinInput {
+  /** new-group: start a group over the internet · join-group: enter a friend's code · server: a server address · lan: host for the same network */
+  mode: "new-group" | "join-group" | "server" | "lan";
   url: string;
-  host: boolean;
+  code: string;
   port: number;
   username: string;
   displayName: string;
   privacy: Privacy;
 }
 
-/** Creates a profile on a server (or on this computer when hosting) and stays connected. */
+/** Creates a profile (starting or joining a group, or on a server) and stays connected. */
 export async function joinSocial(input: JoinInput): Promise<void> {
   disconnectSocial();
   wanted = true;
   useSocial.setState({ conn: "connecting", error: null });
   try {
     let url = input.url.trim();
-    if (input.host) {
+    const host = input.mode === "new-group" || input.mode === "lan";
+    if (input.mode === "new-group") {
+      const list = brokers();
+      const code = newGroupCode(await pickBroker(undefined, list));
+      await startGroupHost(code);
+      url = `relay:${code}`;
+    } else if (input.mode === "join-group") {
+      brokerOf(input.code, brokers()); // validates the code's shape before anything else
+      url = `relay:${formatCode(input.code)}`;
+    } else if (input.mode === "lan") {
       await startHost(input.port);
       url = `ws://127.0.0.1:${input.port}`;
     } else if (!/^wss?:\/\//.test(url)) url = `ws://${url}`;
-    await open(url);
+    await open(url, host);
     const r = await rawCall<{ userId: string; token: string; state: Snapshot }>("register", { username: input.username, displayName: input.displayName, privacy: input.privacy, ...localProfile() });
-    await setSetting("social", { url, userId: r.userId, token: r.token, host: input.host, port: input.port });
+    await setSetting("social", { url, userId: r.userId, token: r.token, host, port: input.port });
     goOnline(r.state);
   } catch (e) {
     disconnectSocial();
+    await stopHost();
     throw e;
   }
 }
@@ -258,9 +308,9 @@ export function disconnectSocial() {
   wanted = false;
   if (retryTimer) clearTimeout(retryTimer);
   if (beatTimer) clearInterval(beatTimer);
-  const sock = ws;
-  ws = null;
-  sock?.close();
+  const l = link;
+  link = null;
+  l?.close();
   useSocial.setState({ conn: "off", snap: null, error: null });
 }
 
@@ -287,38 +337,68 @@ export function initSocial() {
 
 // ---- LAN hosting (desktop app only) ------------------------------------------
 
-export const useHost = create<{ running: boolean; addresses: string[] }>(() => ({ running: false, addresses: [] }));
+export const useHost = create<{ running: boolean; addresses: string[]; code: string | null; relayOnline: boolean }>(() => ({ running: false, addresses: [], code: null, relayOnline: false }));
 const HOST_KEY = "social_host_state";
 let unlisten: (() => void) | null = null;
 let hostTick: ReturnType<typeof setInterval> | null = null;
+let hosted: Promise<SocialServer> | null = null;
+let relay: RelayHost | null = null;
 
 /**
- * Hosts the social server inside this app for friends on the same network.
- * The Rust side only relays WebSocket frames; the server logic is the same
- * `SocialServer` class the standalone server runs, with its state kept in
- * this computer's database.
+ * The in-app server used when this device hosts (a group over the internet, or
+ * the local network). It is the same `SocialServer` class the standalone
+ * server runs, with its state kept in this computer's database.
  */
+function hostServer(): Promise<SocialServer> {
+  return (hosted ??= (async () => {
+    const row = (await db().select<{ value: string }>("SELECT value FROM settings WHERE key = ?", [HOST_KEY]))[0];
+    let state = emptyState();
+    try {
+      if (row) state = { ...state, ...JSON.parse(row.value) };
+    } catch {
+      toast("Hosted data could not be read", "Starting with an empty group.", "error");
+    }
+    // Saved immediately on change (at most every 300 ms), never on a delay that a backgrounded or closing
+    // window might not get to run, and once more when the window closes.
+    let saveTimer: ReturnType<typeof setTimeout> | null = null;
+    let lastSave = 0;
+    const save = () => {
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = null;
+      lastSave = Date.now();
+      void db().execute("INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at", [HOST_KEY, JSON.stringify(server.state), lastSave]);
+    };
+    const server: SocialServer = new SocialServer(state, {
+      onChange: () => {
+        if (Date.now() - lastSave >= 300) save();
+        else saveTimer ??= setTimeout(save, 300);
+      },
+    });
+    window.addEventListener("pagehide", () => {
+      if (!hosted) return;
+      if (saveTimer) save();
+      db().flush?.();
+    });
+    hostTick = setInterval(() => server.tick(), 5000);
+    return server;
+  })());
+}
+
+/** Hosts a group that friends anywhere can join with the code, through the encrypted relay. Works in any build. */
+export async function startGroupHost(code: string): Promise<void> {
+  if (relay) return;
+  const server = await hostServer();
+  relay = await relayHost(code, server, { brokers: brokers(), onStatus: (online) => useHost.setState({ relayOnline: online }) });
+  useHost.setState({ running: true, code: formatCode(code), relayOnline: true });
+}
+
+/** Hosts for friends on the same network (desktop app only): the Rust side relays WebSocket frames to the in-app server. */
 export async function startHost(port: number): Promise<void> {
-  if (!isTauri()) throw new Error("Hosting is available in the desktop app. In a browser, connect to a server address instead.");
-  if (useHost.getState().running) return;
+  if (!isTauri()) throw new Error("Hosting on the local network needs the desktop app.");
+  if (unlisten) return;
   const { invoke } = await import("@tauri-apps/api/core");
   const { listen } = await import("@tauri-apps/api/event");
-  const { SocialServer, emptyState } = await import("./server");
-  const row = (await db().select<{ value: string }>("SELECT value FROM settings WHERE key = ?", [HOST_KEY]))[0];
-  let state = emptyState();
-  try {
-    if (row) state = { ...state, ...JSON.parse(row.value) };
-  } catch {
-    toast("Hosted data could not be read", "Starting with an empty friends server.", "error");
-  }
-  let saveTimer: ReturnType<typeof setTimeout> | null = null;
-  const save = () => void db().execute("INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at", [HOST_KEY, JSON.stringify(server.state), Date.now()]);
-  const server = new SocialServer(state, {
-    onChange: () => {
-      if (saveTimer) clearTimeout(saveTimer);
-      saveTimer = setTimeout(save, 800);
-    },
-  });
+  const server = await hostServer();
   unlisten = await listen<{ kind: string; conn: number; text: string }>("lan-host", (e) => {
     const id = String(e.payload.conn);
     if (e.payload.kind === "open") server.connect(id, (text) => void invoke("lan_host_send", { conn: e.payload.conn, text }));
@@ -326,16 +406,20 @@ export async function startHost(port: number): Promise<void> {
     else void server.receive(id, e.payload.text);
   });
   const info = await invoke<{ port: number; addresses: string[] }>("lan_host_start", { port });
-  hostTick = setInterval(() => server.tick(), 5000);
   useHost.setState({ running: true, addresses: info.addresses });
 }
 
 export async function stopHost(): Promise<void> {
-  if (!useHost.getState().running) return;
-  unlisten?.();
-  unlisten = null;
+  relay?.close();
+  relay = null;
+  if (unlisten) {
+    unlisten();
+    unlisten = null;
+    const { invoke } = await import("@tauri-apps/api/core");
+    await invoke("lan_host_stop").catch(() => undefined);
+  }
   if (hostTick) clearInterval(hostTick);
-  const { invoke } = await import("@tauri-apps/api/core");
-  await invoke("lan_host_stop").catch(() => undefined);
-  useHost.setState({ running: false, addresses: [] });
+  hostTick = null;
+  hosted = null;
+  useHost.setState({ running: false, addresses: [], code: null, relayOnline: false });
 }

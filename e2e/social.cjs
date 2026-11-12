@@ -14,7 +14,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 (async () => {
   let server = spawn('node', ['server/dist/tempo-social-server.cjs'], { env: { ...process.env, PORT: String(PORT), DATA_DIR: S }, stdio: 'ignore' });
   await sleep(700);
-  const browser = await chromium.launch();
+  // Same as the desktop window: timers keep running in windows that are not in front.
+  const browser = await chromium.launch({ args: ['--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows'] });
   const errors = [];
   const user = async (name) => {
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -34,6 +35,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   await step('1 both create a social profile', async () => {
     for (const [p, u, d] of [[A, 'youssef', 'Youssef'], [B, 'ahmed', 'Ahmed']]) {
+      await p.getByRole('button', { name: /Other ways to connect/ }).click();
+      await p.getByRole('tab', { name: 'Server address' }).click();
       await p.getByPlaceholder(/ws:\/\/192/).fill(`ws://localhost:${PORT}`);
       await p.getByPlaceholder('youssef', { exact: true }).fill(u);
       await p.getByPlaceholder('Youssef', { exact: true }).fill(d);

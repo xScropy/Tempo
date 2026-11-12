@@ -9,12 +9,12 @@ tasks, projects, a Pomodoro/focus engine, time tracking, calendar, habits, goals
 - Tracked time is always computed from real timestamps — pauses, closed windows and sleeping laptops are handled explicitly.
 - Optional levels, tokens and daily quests reward real work — XP comes only from tracked focus time, finished tasks and habits.
 - Light and dark themes (toggle at the bottom of the sidebar).
-- Optional social layer: see when friends are focusing, compare weekly progress, run challenges and focus together — over your own Wi-Fi or a small self-hosted server ([docs/SOCIAL.md](docs/SOCIAL.md)).
+- Optional social layer: see when friends are focusing, compare weekly progress, run challenges and focus together — start a group and share its code, no server needed ([docs/SOCIAL.md](docs/SOCIAL.md)).
 - Nothing in the app is sample data. Every number comes from what you entered or tracked.
 
 Download the Windows installer from the [Releases page](https://github.com/xScropy/Tempo/releases).
 
-Status: **v0.2.0 (pre-release)** — Phases 1–7 of the roadmap are implemented; release polish (Phase 8) is not. See [ROADMAP.md](ROADMAP.md) for exactly what is and is not built.
+Status: **v0.3.0 (pre-release)** — Phases 1–7 of the roadmap are implemented; release polish (Phase 8) is not. See [ROADMAP.md](ROADMAP.md) for exactly what is and is not built.
 
 ## Requirements
 

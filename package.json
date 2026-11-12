@@ -1,7 +1,7 @@
 {
   "name": "tempo",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit && tsc --noEmit -p server",
     "test": "vitest run",
     "tauri": "tauri",
-    "e2e": "node e2e/core-flows.cjs && node e2e/planning-and-data.cjs && node e2e/rewards.cjs && node e2e/social.cjs",
+    "e2e": "node e2e/core-flows.cjs && node e2e/planning-and-data.cjs && node e2e/rewards.cjs && node e2e/social.cjs && node e2e/group.cjs",
     "build:server": "esbuild server/main.ts --bundle --platform=node --target=node20 --format=cjs --outfile=server/dist/tempo-social-server.cjs",
     "server": "npm run build:server && node server/dist/tempo-social-server.cjs"
   },
@@ -42,8 +42,10 @@
     "@types/sql.js": "^1.4.11",
     "@types/ws": "^8.18.2",
     "@vitejs/plugin-react": "^4.7.0",
+    "aedes": "^1.2.0",
     "autoprefixer": "^10.6.2",
     "esbuild": "^0.28.2",
+    "https-proxy-agent": "^9.1.0",
     "postcss": "^8.5.32",
     "tailwindcss": "^3.4.19",
     "typescript": "^5.9.3",

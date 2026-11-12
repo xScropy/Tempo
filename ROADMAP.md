@@ -42,7 +42,7 @@ Levels, tokens, daily quests, achievements and a reward shop. XP comes only from
 Friends, live presence, shared statistics, leaderboards, challenges, focus rooms, activity feed, privacy and notification controls — built and verified with two users against the real server (`e2e/social.cjs`). Details, trade-offs and what is not built: [docs/SOCIAL.md](docs/SOCIAL.md).
 
 - 🟡 LAN hosting inside the desktop app is tested at the relay level, not yet on two physical machines.
-- 🟡 Remote friends need someone to run the included server; no public server is provided.
+- 🟡 Friends on other networks connect with a group code through a public relay (end-to-end encrypted). Tested against a local broker; not yet confirmed against the public relays. The group is reachable only while its starter has Tempo open; an always-on group needs the included server.
 - ⬜ Profile pictures, standalone groups, chat, automatic LAN discovery, account deletion on the server.
 
 ## Phase 8 — Polish and release ⬜

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0 — 2026-11-13
+
+Added
+- **Connect with friends on other networks without running a server.** Social → *Start a group* gives a code; friends choose *Join with a code*. The starter's app hosts the group and traffic goes through a public relay, end-to-end encrypted with the code. The group is reachable while the starter's Tempo is open. Server address and same-Wi-Fi hosting remain under *Other ways to connect*.
+
+Fixed
+- The desktop window no longer slows its timers when minimised or behind other windows, which could delay "session complete" notifications and would have made a minimised Tempo look offline to friends.
+- A hosted group's state is now saved immediately on change instead of after a delay.
+- Browser (development) build: database changes are written through promptly; previously the last fraction of a second could be lost when the tab closed.
+
 ## 0.2.0 — 2026-11-12
 
 Added — **Social** (optional; see docs/SOCIAL.md)

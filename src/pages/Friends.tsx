@@ -7,7 +7,7 @@ import { setSetting } from "@/store/actions";
 import { useData, type Settings } from "@/store/data";
 import { startSession } from "@/store/timer";
 import { confirmDialog, navigate, useUi } from "@/store/ui";
-import { joinSocial, leaveSocial, connectSocial, social, useHost, useSocial } from "@/social/client";
+import { joinSocial, leaveSocial, connectSocial, groupCode, isGroup, social, useHost, useSocial, type JoinInput } from "@/social/client";
 import { DEFAULT_PRIVACY, REACTIONS, REACTION_LABEL, type ChallengeInput, type ChallengeView, type FriendView, type Privacy, type PublicProfile, type RoomView, type Snapshot } from "@/social/protocol";
 import { Badge, Button, Checkbox, CommitInput, Dialog, Empty, Field, IconButton, Input, Menu, PageHeader, Progress, Section, Segmented, Select, Stat, Textarea, cx } from "@/components/ui";
 import { Avatar, DayBars, METRIC_LABEL, PresenceLine, fmtMetric, hrs, leaderboard, pct, usePeople, type BoardMetric } from "./social-bits";
@@ -47,17 +47,18 @@ function Onboarding() {
   const conn = useSocial((s) => s.conn);
   const saved = useData((s) => s.settings.social);
   const profile = useData((s) => s.profile);
-  const [mode, setMode] = useState<"server" | "host">("server");
-  const [f, setF] = useState({ url: "", port: "47800", username: "", displayName: profile?.display_name ?? "" });
+  const [mode, setMode] = useState<JoinInput["mode"]>("new-group");
+  const [f, setF] = useState({ url: "", code: "", port: "47800", username: "", displayName: profile?.display_name ?? "" });
   const [privacy, setPrivacy] = useState<Privacy>(DEFAULT_PRIVACY);
   const [busy, setBusy] = useState(false);
+  const [advanced, setAdvanced] = useState(false);
 
   if (saved) {
     return (
       <Empty
         icon={<WifiOff size={28} />}
         title={conn === "connecting" ? "Connecting…" : "Not connected"}
-        body={`${error ?? "The social server is unreachable."} Everything else in Tempo keeps working. Tempo retries automatically.`}
+        body={`${error ?? "The group or server is unreachable."} Everything else in Tempo keeps working, and Tempo keeps retrying.`}
         action={
           <div className="flex gap-2">
             <Button variant="primary" onClick={() => void connectSocial()}>Retry now</Button>
@@ -70,9 +71,10 @@ function Onboarding() {
 
   const submit = async () => {
     setBusy(true);
-    await attempt(() => joinSocial({ url: f.url, host: mode === "host", port: Number(f.port) || 47800, username: f.username, displayName: f.displayName, privacy }));
+    await attempt(() => joinSocial({ mode, url: f.url, code: f.code, port: Number(f.port) || 47800, username: f.username, displayName: f.displayName, privacy }));
     setBusy(false);
   };
+  const ready = f.username && f.displayName && (mode === "new-group" || (mode === "join-group" ? f.code.replace(/[^a-z0-9]/gi, "").length === 16 : mode === "server" ? f.url.trim() : isTauri()));
 
   return (
     <div className="mx-auto max-w-[640px] space-y-4 py-6">
@@ -82,17 +84,46 @@ function Onboarding() {
       </div>
       <Section title="1 · How will you connect?">
         <div className="space-y-3 px-3 py-3">
-          <Segmented value={mode} onChange={setMode} options={[{ value: "server", label: "Join a server" }, { value: "host", label: "Host on this computer" }]} />
-          {mode === "server" ? (
-            <Field label="Server address" hint="Ask the friend who runs the server, or the person hosting on your Wi-Fi, for this address. Friends on other networks need a server reachable from the internet — see docs/SOCIAL.md.">
-              <Input value={f.url} placeholder="ws://192.168.1.20:47800  or  wss://your-server.example" onChange={(e) => setF({ ...f, url: e.target.value })} />
+          <div className="grid grid-cols-2 gap-2">
+            {(
+              [
+                ["new-group", "Start a group", "You get a code to send to friends. Works across different networks."],
+                ["join-group", "Join with a code", "A friend already started a group and sent you its code."],
+              ] as const
+            ).map(([m, title, text]) => (
+              <button key={m} type="button" aria-pressed={mode === m} onClick={() => setMode(m)} className={cx("rounded-md border px-3 py-2.5 text-left", mode === m ? "border-accent bg-accent/5" : "border-line-strong hover:bg-hover/50")}>
+                <div className="font-medium">{title}</div>
+                <div className="mt-0.5 text-xs text-ink-2">{text}</div>
+              </button>
+            ))}
+          </div>
+          {mode === "new-group" && (
+            <div className="rounded border border-line bg-raised px-3 py-2 text-xs text-ink-2">
+              Your computer becomes the meeting point: <strong className="text-ink">the group is reachable while your Tempo is open</strong>. Messages travel through a public relay on the internet and are encrypted with the group code, so the relay cannot read them. No account or server is needed.
+            </div>
+          )}
+          {mode === "join-group" && (
+            <Field label="Group code" hint="16 characters, like 1ABC-DEFG-HJKM-NPQR. The friend who started the group needs to have Tempo open.">
+              <Input className="font-mono tracking-wider" value={f.code} placeholder="1ABC-DEFG-HJKM-NPQR" onChange={(e) => setF({ ...f, code: e.target.value.toUpperCase() })} />
             </Field>
-          ) : (
-            <>
-              <Field label="Port" hint={isTauri() ? "Friends on the same Wi-Fi or network connect to this computer. It only works while Tempo is open here, and your firewall may ask for permission." : "Hosting needs the desktop app. In a browser, join a server instead."}>
-                <Input className="!w-32" type="number" value={f.port} disabled={!isTauri()} onChange={(e) => setF({ ...f, port: e.target.value })} />
-              </Field>
-            </>
+          )}
+          <button type="button" className="text-xs text-ink-3 underline hover:text-ink-2" onClick={() => setAdvanced(!advanced)}>
+            {advanced ? "Hide" : "Other ways to connect"} (your own server, or the same Wi-Fi without internet)
+          </button>
+          {advanced && (
+            <div className="space-y-3 border-t border-line pt-3">
+              <Segmented value={mode === "server" || mode === "lan" ? mode : ("" as never)} onChange={setMode} options={[{ value: "server", label: "Server address" }, { value: "lan", label: "Host on this network" }]} />
+              {mode === "server" && (
+                <Field label="Server address" hint="A Tempo social server someone runs for you (always on, no host needed). See docs/SOCIAL.md.">
+                  <Input value={f.url} placeholder="wss://your-server.example  or  ws://192.168.1.20:47800" onChange={(e) => setF({ ...f, url: e.target.value })} />
+                </Field>
+              )}
+              {mode === "lan" && (
+                <Field label="Port" hint={isTauri() ? "Friends on the same Wi-Fi connect straight to this computer, without the internet. Your firewall may ask for permission." : "Needs the desktop app."}>
+                  <Input className="!w-32" type="number" value={f.port} disabled={!isTauri()} onChange={(e) => setF({ ...f, port: e.target.value })} />
+                </Field>
+              )}
+            </div>
           )}
         </div>
       </Section>
@@ -112,8 +143,8 @@ function Onboarding() {
         </div>
       </Section>
       <div className="flex items-center gap-3">
-        <Button variant="primary" className="!h-9" disabled={busy || !f.username || !f.displayName || (mode === "server" ? !f.url.trim() : !isTauri())} onClick={() => void submit()}>
-          {busy ? "Connecting…" : "Create profile and connect"}
+        <Button variant="primary" className="!h-9" disabled={busy || !ready} onClick={() => void submit()}>
+          {busy ? "Connecting…" : mode === "new-group" ? "Create profile and start the group" : "Create profile and connect"}
         </Button>
         <span className="text-xs text-ink-3">You can change every choice later, or leave at any time.</span>
       </div>
@@ -765,15 +796,33 @@ function ProfileTab({ snap }: { snap: Snapshot }) {
         </Section>
         <Section title="Connection">
           <div className="space-y-2 px-3 py-3 text-sm">
-            <div className="flex items-center gap-2"><Wifi size={14} className="text-ok" /> Connected to <code className="selectable font-mono text-xs">{id?.url}</code></div>
-            {host.running && (
+            {id && isGroup(id.url) ? (
+              <div className="rounded border border-line bg-raised px-3 py-2.5">
+                <div className="text-xs font-medium text-ink-2">{id.host ? "Your group code — send it to friends" : "Group code"}</div>
+                <div className="mt-1 flex items-center gap-2">
+                  <code className="selectable font-mono text-lg tracking-widest">{groupCode(id.url)}</code>
+                  <Button size="sm" icon={<Copy size={12} />} onClick={() => void navigator.clipboard.writeText(groupCode(id.url)).then(() => toast("Group code copied", "Friends enter it under Social → Join with a code.", "ok"))}>Copy</Button>
+                </div>
+                <div className="mt-1.5 text-xs text-ink-2">
+                  {id.host ? (
+                    <>
+                      <span className={host.relayOnline ? "text-ok" : "text-warn"}>{host.relayOnline ? "● Reachable" : "● Relay unreachable — retrying"}</span> · friends can connect while Tempo is open on this computer. Anyone with the code can join the group, so share it privately.
+                    </>
+                  ) : (
+                    "You reach the group through the encrypted relay. It is available while its host has Tempo open."
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2"><Wifi size={14} className="text-ok" /> Connected to <code className="selectable font-mono text-xs">{id?.url}</code></div>
+            )}
+            {host.addresses.length > 0 && (
               <div className="rounded border border-line bg-raised px-3 py-2">
-                <div className="font-medium">You are hosting on this computer</div>
+                <div className="font-medium">You are hosting on this network</div>
                 <div className="text-xs text-ink-2">Friends on the same network join with one of these addresses, while Tempo is open here:</div>
                 {host.addresses.map((a) => (
                   <div key={a} className="mt-1 flex items-center gap-2"><code className="selectable font-mono text-sm">{a}</code><IconButton label="Copy address" className="!h-6 !w-6" onClick={() => void navigator.clipboard.writeText(a).then(() => toast("Address copied", undefined, "ok"))}><Copy size={12} /></IconButton></div>
                 ))}
-                {host.addresses.length === 0 && <div className="text-xs text-warn">No network address found — is this computer connected to a network?</div>}
               </div>
             )}
             <Button size="sm" variant="danger" icon={<LogOut size={12} />} onClick={() => void confirmDialog({ title: "Leave the social features?", body: "This device forgets its social login and stops sharing. Your tasks, tracked time and all other local data stay exactly as they are.", confirmLabel: "Leave", danger: true }).then((ok) => ok && attempt(leaveSocial))}>Leave and stop sharing</Button>
