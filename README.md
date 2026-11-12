@@ -1,0 +1,72 @@
+# Tempo
+
+A local-first desktop app for planning work, doing it, and seeing where the time went:
+tasks, projects, a Pomodoro/focus engine, time tracking, calendar, habits, goals and reports — in one place, fully offline.
+
+**Plan → Execute → Track → Review → Improve.**
+
+- All data lives in a SQLite database on your computer. No account, no cloud, no network requests.
+- Tracked time is always computed from real timestamps — pauses, closed windows and sleeping laptops are handled explicitly.
+- Nothing in the app is sample data. Every number comes from what you entered or tracked.
+
+Status: **v0.1.0** — Phases 1–6 of the roadmap are implemented; social connectivity (Phase 7) and release polish (Phase 8) are not. See [ROADMAP.md](ROADMAP.md) for exactly what is and is not built.
+
+## Requirements
+
+- Node.js 20+
+- Rust (stable) and the [Tauri 2 prerequisites](https://tauri.app/start/prerequisites/) for your OS
+  (Windows: WebView2 + MSVC build tools; Linux: `libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev`)
+
+## Run
+
+```bash
+npm install
+npm run tauri dev        # desktop app with hot reload
+npm run tauri build      # installer (NSIS/MSI on Windows, deb/AppImage on Linux, dmg on macOS)
+```
+
+Tempo also runs in a plain browser, using SQLite compiled to WebAssembly and persisted in IndexedDB.
+This is the development/test driver, not the product:
+
+```bash
+npm run dev              # http://localhost:1420
+```
+
+## Test
+
+```bash
+npm test                 # unit + integration tests (domain logic, and store actions against real SQLite)
+npm run typecheck
+cd src-tauri && cargo test
+
+# Browser walkthroughs (need Playwright with Chromium available):
+npm run build && npm run preview &
+npm run e2e
+```
+
+## Keyboard
+
+| Keys | Action |
+| --- | --- |
+| `N` / `Ctrl+N` | New task (quick add understands "tomorrow", "at 9:30", "2h", `!high`, `#tag`) |
+| `Ctrl+Shift+P` | New project |
+| `Ctrl+K` / `/` | Search tasks, projects, notes, sessions, journal, tags |
+| `Alt+T` | Start / pause the timer |
+| `Alt+C` | Calendar |
+| `Alt+1…9` | Jump to a section |
+| `Esc` | Close the task panel / leave focus mode |
+| `Ctrl+Shift+Space` | Global quick capture from any app (desktop, configurable) |
+
+## Where is my data?
+
+Settings → Your data shows the folder. It contains `tempo.db` and a `backups/` folder with daily snapshots
+(the newest 14 are kept by default). You can export everything to JSON, tasks and time entries to CSV,
+and restore from either a JSON export or a database backup.
+
+## Documentation
+
+- [PRD.md](PRD.md) — product requirements
+- [ARCHITECTURE.md](ARCHITECTURE.md) — structure, key decisions, risks
+- [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) — tables and data rules
+- [ROADMAP.md](ROADMAP.md) — phase status and known gaps
+- [CHANGELOG.md](CHANGELOG.md)
