@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { todayStr, type DateStr } from "@/domain/dates";
 import type { TaskInput } from "@/domain/types";
 
-export const PAGES = ["dashboard", "inbox", "tasks", "projects", "calendar", "focus", "habits", "goals", "analytics", "journal", "friends", "settings"] as const;
+export const PAGES = ["dashboard", "inbox", "tasks", "projects", "calendar", "focus", "habits", "goals", "analytics", "rewards", "journal", "friends", "settings"] as const;
 export type Page = (typeof PAGES)[number];
 
 export interface ConfirmRequest {

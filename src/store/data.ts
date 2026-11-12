@@ -4,7 +4,7 @@ import { parseRows } from "@/db/sql";
 import type { Statement } from "@/db/driver";
 import type {
   ActivityLog, CalendarEvent, Category, FocusSession, Goal, Habit, HabitEntry, JournalEntry, Milestone, Profile,
-  Project, RuleRow, SmartView, Tag, Task, TaskSeries, TimeEntry, TimeTarget,
+  Project, Redemption, Reward, RuleRow, SmartView, Tag, Task, TaskSeries, TimeEntry, TimeTarget,
 } from "@/domain/types";
 
 export interface WidgetConfig {
@@ -35,6 +35,8 @@ export interface Settings {
   autoBackup: boolean;
   backupKeep: number;
   lastAutoBackup: number;
+  /** levels, tokens, quests and rewards */
+  gamification: boolean;
   share: { focusTime: boolean; sessions: boolean; tasksCompleted: boolean; streak: boolean; goals: boolean };
 }
 
@@ -70,6 +72,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoBackup: true,
   backupKeep: 14,
   lastAutoBackup: 0,
+  gamification: true,
   share: { focusTime: true, sessions: true, tasksCompleted: true, streak: true, goals: false },
 };
 
@@ -97,6 +100,8 @@ export interface DataState {
   journal: Record<string, JournalEntry>;
   logs: ActivityLog[];
   smartViews: SmartView[];
+  rewards: Reward[];
+  redemptions: Redemption[];
 }
 
 type Loader = () => Promise<Partial<DataState>>;
@@ -151,6 +156,8 @@ const LOADERS: Record<string, Loader> = {
   },
   activity_logs: async () => ({ logs: await rows("activity_logs", "SELECT * FROM activity_logs ORDER BY created_at DESC LIMIT 2000") }),
   smart_views: async () => ({ smartViews: await rows("smart_views", "SELECT * FROM smart_views ORDER BY created_at") }),
+  rewards: async () => ({ rewards: await rows("rewards", "SELECT * FROM rewards ORDER BY cost, created_at") }),
+  reward_redemptions: async () => ({ redemptions: await rows("reward_redemptions", "SELECT * FROM reward_redemptions ORDER BY redeemed_at DESC") }),
 };
 
 export type LoadKey = keyof typeof LOADERS;
@@ -178,6 +185,8 @@ export const useData = create<DataState>(() => ({
   journal: {},
   logs: [],
   smartViews: [],
+  rewards: [],
+  redemptions: [],
 }));
 
 export async function reload(tables: string[] = Object.keys(LOADERS)): Promise<void> {

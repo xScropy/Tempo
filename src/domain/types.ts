@@ -236,6 +236,20 @@ export interface SmartView {
   filter: TaskFilter;
   created_at: number;
 }
+export interface Reward {
+  id: string;
+  title: string;
+  cost: number;
+  created_at: number;
+  archived_at: number | null;
+}
+export interface Redemption {
+  id: string;
+  reward_id: string | null;
+  title: string;
+  cost: number;
+  redeemed_at: number;
+}
 export interface Profile {
   id: string;
   display_name: string;

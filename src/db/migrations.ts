@@ -317,6 +317,29 @@ CREATE TABLE backup_history (
 );
 `,
   },
+  {
+    version: 2,
+    name: "rewards",
+    sql: `
+-- Things the user treats themself to, paid for with tokens earned by working.
+CREATE TABLE rewards (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  cost INTEGER NOT NULL CHECK (cost > 0),
+  created_at INTEGER NOT NULL,
+  archived_at INTEGER
+);
+
+-- Title and cost are copied so history survives edits to the reward.
+CREATE TABLE reward_redemptions (
+  id TEXT PRIMARY KEY,
+  reward_id TEXT REFERENCES rewards(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  cost INTEGER NOT NULL CHECK (cost > 0),
+  redeemed_at INTEGER NOT NULL
+);
+`,
+  },
 ];
 
 /** Tables in dependency order (parents first) — used by export/import. */
@@ -324,6 +347,6 @@ export const TABLES = [
   "profiles", "settings", "categories", "tags", "projects", "project_tags", "milestones",
   "recurrence_rules", "task_series", "tasks", "task_tags", "task_dependencies", "time_targets",
   "focus_sessions", "time_entries", "calendar_events", "habits", "habit_entries", "goals",
-  "journal_entries", "activity_logs", "notifications", "smart_views", "backup_history",
+  "journal_entries", "activity_logs", "notifications", "smart_views", "backup_history", "rewards", "reward_redemptions",
 ] as const;
 export type TableName = (typeof TABLES)[number];

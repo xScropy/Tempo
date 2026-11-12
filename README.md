@@ -7,9 +7,13 @@ tasks, projects, a Pomodoro/focus engine, time tracking, calendar, habits, goals
 
 - All data lives in a SQLite database on your computer. No account, no cloud, no network requests.
 - Tracked time is always computed from real timestamps — pauses, closed windows and sleeping laptops are handled explicitly.
+- Optional levels, tokens and daily quests reward real work — XP comes only from tracked focus time, finished tasks and habits.
+- Light and dark themes (toggle at the bottom of the sidebar).
 - Nothing in the app is sample data. Every number comes from what you entered or tracked.
 
-Status: **v0.1.0** — Phases 1–6 of the roadmap are implemented; social connectivity (Phase 7) and release polish (Phase 8) are not. See [ROADMAP.md](ROADMAP.md) for exactly what is and is not built.
+Download the Windows installer from the [Releases page](https://github.com/xScropy/Tempo/releases).
+
+Status: **v0.1.0 (pre-release)** — Phases 1–6 of the roadmap are implemented; social connectivity (Phase 7) and release polish (Phase 8) are not. See [ROADMAP.md](ROADMAP.md) for exactly what is and is not built.
 
 ## Requirements
 

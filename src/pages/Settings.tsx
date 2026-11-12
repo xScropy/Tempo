@@ -149,6 +149,9 @@ export function SettingsPage() {
               <span className="text-sm text-ink-2">Theme</span>
               <Segmented value={settings.theme} onChange={(v) => void attempt(() => setSetting("theme", v))} options={[{ value: "system", label: "System" }, { value: "light", label: "Light" }, { value: "dark", label: "Dark" }]} />
             </div>
+            <div className="border-t border-line px-3 py-3">
+              <Toggle k="gamification" label="Levels, tokens, daily quests and rewards" />
+            </div>
           </Section>
 
           <Section title="Week and targets">

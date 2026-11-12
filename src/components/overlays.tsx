@@ -233,7 +233,7 @@ interface Hit {
 const NAV: Array<{ page: Page; label: string }> = [
   { page: "dashboard", label: "Dashboard" }, { page: "inbox", label: "Inbox" }, { page: "tasks", label: "My Tasks" }, { page: "projects", label: "Projects" },
   { page: "calendar", label: "Calendar" }, { page: "focus", label: "Focus" }, { page: "habits", label: "Habits" }, { page: "goals", label: "Goals" },
-  { page: "analytics", label: "Analytics" }, { page: "journal", label: "Journal" }, { page: "friends", label: "Friends" }, { page: "settings", label: "Settings" },
+  { page: "analytics", label: "Analytics" }, { page: "rewards", label: "Rewards" }, { page: "journal", label: "Journal" }, { page: "friends", label: "Friends" }, { page: "settings", label: "Settings" },
 ];
 
 /** Global search across tasks, projects, notes, sessions, journal, tags and categories. */

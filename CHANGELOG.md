@@ -1,8 +1,8 @@
 # Changelog
 
-## 0.1.0 — unreleased
+## 0.1.0 — 2026-11-12
 
-First working version: roadmap phases 1–6.
+First release (pre-release): roadmap phases 1–6.
 
 - Desktop shell (Tauri 2) with a local SQLite database, migrations and daily automatic backups.
 - Tasks: quick add, subtasks, tags, priorities, statuses, dependencies, reminders, notes, links; list, board, priority, matrix and timeline views; filters and smart views; inbox; global search.
@@ -13,6 +13,8 @@ First working version: roadmap phases 1–6.
 - Habits, goals, weekly time targets, daily journal.
 - Analytics: planned vs. tracked time, distribution by project/category/task/tag, productive hours, estimation accuracy; print to PDF.
 - Export to JSON and CSV; restore from JSON or from a database backup.
-- 75 automated tests for time calculation, recurrence, project progress, weekly targets, habits and the data layer; two browser walkthrough scripts.
+- Rewards: levels, tokens, daily quests, achievements and a user-defined reward shop, all derived from real tracked work by fixed, visible rules. Can be switched off.
+- One-click light/dark toggle in the sidebar (in addition to Settings → Appearance, which also offers "follow system").
+- 80 automated tests for time calculation, recurrence, project progress, weekly targets, habits and the data layer; three browser walkthrough scripts.
 
 Not included: friends and networking, templates, tray/background reminders, a tested Windows installer. See ROADMAP.md.

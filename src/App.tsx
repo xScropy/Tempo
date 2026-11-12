@@ -21,12 +21,13 @@ import { GoalsPage } from "@/pages/Goals";
 import { HabitsPage } from "@/pages/Habits";
 import { JournalPage } from "@/pages/Journal";
 import { ProjectsPage } from "@/pages/Projects";
+import { RewardsPage } from "@/pages/Rewards";
 import { SettingsPage } from "@/pages/Settings";
 import { InboxPage, TasksPage } from "@/pages/Tasks";
 
 const ROUTES: Record<Page, () => JSX.Element> = {
   dashboard: DashboardPage, inbox: InboxPage, tasks: TasksPage, projects: ProjectsPage, calendar: CalendarPage, focus: FocusPage,
-  habits: HabitsPage, goals: GoalsPage, analytics: AnalyticsPage, journal: JournalPage, friends: FriendsPage, settings: SettingsPage,
+  habits: HabitsPage, goals: GoalsPage, analytics: AnalyticsPage, rewards: RewardsPage, journal: JournalPage, friends: FriendsPage, settings: SettingsPage,
 };
 
 let booting: Promise<void> | null = null;

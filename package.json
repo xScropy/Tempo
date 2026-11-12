@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "tauri": "tauri",
-    "e2e": "node e2e/core-flows.cjs && node e2e/planning-and-data.cjs"
+    "e2e": "node e2e/core-flows.cjs && node e2e/planning-and-data.cjs && node e2e/rewards.cjs"
   },
   "dependencies": {
     "@radix-ui/react-context-menu": "^2.4.1",

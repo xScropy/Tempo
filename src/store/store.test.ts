@@ -7,7 +7,7 @@ import { estimationStats } from "@/domain/time";
 import { consistency } from "@/domain/habits";
 import * as a from "./actions";
 import { data, reload, useData, DEFAULT_SETTINGS } from "./data";
-import { habitDays, projectSeconds, sessionSeconds, taskSeconds, targetSeconds, weekRange, goalProgress } from "./selectors";
+import { gameState, habitDays, projectSeconds, sessionSeconds, taskSeconds, targetSeconds, weekRange, goalProgress } from "./selectors";
 import { pauseSession, resetTimerStore, resolveGap, restoreTimer, resumeSession, startSession, stopSession, tick, useTimer } from "./timer";
 
 const MIN = 60_000;
@@ -345,5 +345,31 @@ describe("export and restore (acceptance 17)", () => {
     await expect(a.importAll({ app: "other" })).rejects.toThrow();
     await expect(a.importAll({ app: "tempo", schema_version: 1, exported_at: 1, tables: { tasks: [{ id: "x" }] } })).rejects.toThrow();
     expect(data().tasks.map((t) => t.title)).toEqual(["Keep me"]);
+  });
+});
+
+describe("levels and tokens", () => {
+  it("earns XP from real work and spends tokens on rewards without overdrawing", async () => {
+    const t = await a.createTask({ title: "Write" });
+    await startSession({ mode: "countdown", minutes: 60, taskId: t });
+    advance(60 * MIN);
+    await tick();
+    await a.updateTask(t, { status: "completed" });
+    const g = gameState(data(), "2026-03-02");
+    // 60 focus minutes + 1 task (10) + 1 session (5) + focus quest (15)
+    expect(g.totals.xp).toBe(90);
+    expect(g.tokens).toBe(9);
+
+    await a.saveReward({ title: "Coffee break", cost: 5 });
+    await a.saveReward({ title: "Movie night", cost: 50 });
+    const [coffee, movie] = data().rewards;
+    await a.redeemReward(coffee!.id);
+    expect(gameState(data(), "2026-03-02").tokens).toBe(4);
+    await expect(a.redeemReward(movie!.id)).rejects.toThrow(/46 more tokens/);
+    await expect(a.redeemReward(coffee!.id)).rejects.toThrow(/1 more token/);
+    await expect(a.saveReward({ title: "Free", cost: 0 })).rejects.toThrow();
+    // Redemption history survives archiving the reward
+    await a.archiveReward(coffee!.id);
+    expect(data().redemptions).toHaveLength(1);
   });
 });

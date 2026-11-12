@@ -342,3 +342,35 @@ describe("schedule", () => {
     expect([get("c").col, get("c").cols]).toEqual([0, 1]);
   });
 });
+
+import { achievementsFor, dayXp, levelFor, questsFor, tokensEarned, totalsOf, xpForLevel, EMPTY_DAY } from "./game";
+
+describe("levels, tokens and quests", () => {
+  it("awards XP by fixed rules, with quest bonuses", () => {
+    expect(dayXp(EMPTY_DAY)).toBe(0);
+    // 30 min focus + 1 task + 1 session, no quest finished
+    expect(dayXp({ ...EMPTY_DAY, focusSeconds: 1800, tasksCompleted: 1, sessionsCompleted: 1 })).toBe(30 + 10 + 5);
+    // 60 min + 3 tasks: both quests done
+    expect(dayXp({ ...EMPTY_DAY, focusSeconds: 3600, tasksCompleted: 3 })).toBe(60 + 30 + 30);
+  });
+  it("only offers the habit quest when habits are due", () => {
+    expect(questsFor(EMPTY_DAY).map((q) => q.id)).toEqual(["focus", "tasks"]);
+    const q = questsFor({ ...EMPTY_DAY, habitsDue: 2, habitsDone: 2 });
+    expect(q[2]).toMatchObject({ id: "habits", done: true });
+  });
+  it("maps XP to levels on a rising curve", () => {
+    expect([1, 2, 3, 4].map(xpForLevel)).toEqual([0, 100, 300, 600]);
+    expect(levelFor(0)).toMatchObject({ level: 1, into: 0, needed: 100 });
+    expect(levelFor(99).level).toBe(1);
+    expect(levelFor(100).level).toBe(2);
+    expect(levelFor(450)).toMatchObject({ level: 3, into: 150, needed: 300, fraction: 0.5 });
+    expect(tokensEarned(459)).toBe(45);
+  });
+  it("totals days and finds the best focus streak", () => {
+    const d = (m: number) => ({ ...EMPTY_DAY, focusSeconds: m * 60 });
+    const t = totalsOf(new Map([["2026-03-01", d(30)], ["2026-03-02", d(30)], ["2026-03-04", d(60)], ["2026-02-28", d(10)]]));
+    expect(t.bestFocusStreak).toBe(3); // Feb 28, Mar 1, Mar 2
+    expect(t.xp).toBe(10 + 30 + 30 + 60 + 15);
+    expect(achievementsFor(t).find((a) => a.id === "focus-10")!.unlocked).toBe(false);
+  });
+});

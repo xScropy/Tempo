@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, CalendarDays, CheckSquare, Folder, Inbox, LayoutDashboard, PanelLeftClose, PanelLeftOpen, Pause, Play, Plus, Repeat2, Search, Settings, Square, Target, Timer, Users } from "lucide-react";
+import { BarChart3, BookOpen, Moon, Sun, Trophy, CalendarDays, CheckSquare, Folder, Inbox, LayoutDashboard, PanelLeftClose, PanelLeftOpen, Pause, Play, Plus, Repeat2, Search, Settings, Square, Target, Timer, Users } from "lucide-react";
 import { fmtClock } from "@/domain/dates";
 import { isRunning, remainingMs } from "@/domain/timer";
 import { isOverdue } from "@/domain/projects";
@@ -8,7 +8,37 @@ import { setSetting } from "@/store/actions";
 import { useData } from "@/store/data";
 import { pauseSession, resumeSession, stopSession, timerElapsed, useTimer } from "@/store/timer";
 import { navigate, openQuickAdd, openSearch, useUi, type Page } from "@/store/ui";
-import { IconButton, cx } from "./ui";
+import { useEffect, useRef } from "react";
+import { levelTitle } from "@/domain/game";
+import { toast } from "@/lib/notify";
+import { useGame } from "@/pages/Rewards";
+import { IconButton, Progress, cx } from "./ui";
+
+/** Level and token summary; announces level-ups as they happen. */
+function LevelChip({ compact }: { compact: boolean }) {
+  const g = useGame();
+  const prev = useRef(g.level.level);
+  useEffect(() => {
+    if (g.level.level > prev.current) toast(`Level ${g.level.level} reached`, `You are now "${levelTitle(g.level.level)}". Keep going.`, "ok");
+    prev.current = g.level.level;
+  }, [g.level.level]);
+  if (compact) {
+    return (
+      <button type="button" title={`Level ${g.level.level} · ${g.tokens} tokens`} onClick={() => navigate("rewards")} className="tabular mx-auto mb-1 flex h-7 w-9 items-center justify-center rounded border border-line text-2xs font-semibold text-ink-2 hover:bg-hover">
+        L{g.level.level}
+      </button>
+    );
+  }
+  return (
+    <button type="button" onClick={() => navigate("rewards")} className="mx-2 mb-2 block rounded-md border border-line px-2 py-1.5 text-left hover:bg-hover/60">
+      <div className="flex items-baseline justify-between text-xs">
+        <span className="font-medium">Level {g.level.level}</span>
+        <span className="tabular text-ink-2">{g.tokens} token{g.tokens === 1 ? "" : "s"}</span>
+      </div>
+      <Progress value={g.level.fraction} className="mt-1" />
+    </button>
+  );
+}
 
 const ITEMS: Array<{ page: Page; label: string; icon: typeof Inbox }> = [
   { page: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -20,6 +50,7 @@ const ITEMS: Array<{ page: Page; label: string; icon: typeof Inbox }> = [
   { page: "habits", label: "Habits", icon: Repeat2 },
   { page: "goals", label: "Goals", icon: Target },
   { page: "analytics", label: "Analytics", icon: BarChart3 },
+  { page: "rewards", label: "Rewards", icon: Trophy },
   { page: "journal", label: "Journal", icon: BookOpen },
   { page: "friends", label: "Friends", icon: Users },
 ];
@@ -63,6 +94,9 @@ export function Sidebar() {
   const page = useUi((s) => s.page);
   const today = useUi((s) => s.today);
   const collapsed = useData((s) => s.settings.sidebarCollapsed);
+  const gamified = useData((s) => s.settings.gamification);
+  const theme = useData((s) => s.settings.theme);
+  const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
   const inboxCount = useData((s) => s.tasks.reduce((n, t) => n + (t.status === "inbox" && !t.parent_id ? 1 : 0), 0));
   const todayCount = useData((s) => s.tasks.reduce((n, t) => n + (!t.parent_id && isOpen(t) && (t.due_date === today || isOverdue(t, today)) ? 1 : 0), 0));
   const counts: Partial<Record<Page, number>> = { inbox: inboxCount, tasks: todayCount };
@@ -85,7 +119,7 @@ export function Sidebar() {
         </button>
       </div>
       <div className="min-h-0 flex-1 space-y-px overflow-y-auto px-2">
-        {ITEMS.map(({ page: p, label, icon: Icon }) => (
+        {ITEMS.filter((i) => gamified || i.page !== "rewards").map(({ page: p, label, icon: Icon }) => (
           <button
             key={p}
             type="button"
@@ -100,18 +134,22 @@ export function Sidebar() {
           </button>
         ))}
       </div>
+      {gamified && <LevelChip compact={collapsed} />}
       <TimerChip compact={collapsed} />
-      <div className="border-t border-line p-2">
+      <div className={cx("flex gap-1 border-t border-line p-2", collapsed && "flex-col items-center")}>
         <button
           type="button"
           title={collapsed ? "Settings" : undefined}
           aria-current={page === "settings" ? "page" : undefined}
           onClick={() => navigate("settings")}
-          className={cx("flex h-8 w-full items-center gap-2.5 rounded text-sm", collapsed ? "justify-center" : "px-2", page === "settings" ? "bg-hover font-medium text-ink" : "text-ink-2 hover:bg-hover/70 hover:text-ink")}
+          className={cx("flex h-8 min-w-0 flex-1 items-center gap-2.5 rounded text-sm", collapsed ? "w-8 flex-none justify-center" : "px-2", page === "settings" ? "bg-hover font-medium text-ink" : "text-ink-2 hover:bg-hover/70 hover:text-ink")}
         >
           <Settings size={15} />
           {!collapsed && "Settings"}
         </button>
+        <IconButton label={isDark ? "Switch to light mode" : "Switch to dark mode"} className="!h-8 !w-8" onClick={() => void attempt(() => setSetting("theme", isDark ? "light" : "dark"))}>
+          {isDark ? <Sun size={15} /> : <Moon size={15} />}
+        </IconButton>
       </div>
     </nav>
   );

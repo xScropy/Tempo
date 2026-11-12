@@ -10,6 +10,7 @@ import {
   type TaskFilter, type TaskInput, type JournalEntry, type FocusSession, isOpen,
 } from "@/domain/types";
 import { data, mutate, reload, type Settings } from "./data";
+import { gameState } from "./selectors";
 
 const now = () => Date.now();
 /** How far ahead recurring occurrences are materialised. */
@@ -487,6 +488,25 @@ export async function saveSmartView(name: string, filter: TaskFilter): Promise<v
   await mutate([insertStmt("smart_views", { id: newId(), name: n, filter, created_at: now() })], ["smart_views"]);
 }
 export const deleteSmartView = (id: string) => mutate([deleteStmt("smart_views", id)], ["smart_views"]);
+
+// ---- rewards ----------------------------------------------------------------
+
+export async function saveReward(input: { id?: string; title: string; cost: number }): Promise<void> {
+  const v = z.object({ title: z.string().trim().min(1, "Name the reward").max(120), cost: z.number().int("Cost must be a whole number").min(1, "Cost must be at least 1 token").max(100_000) }).parse({ title: input.title, cost: input.cost });
+  await mutate([input.id ? updateStmt("rewards", input.id, v) : insertStmt("rewards", { id: newId(), ...v, created_at: now() })], ["rewards"]);
+}
+
+export const archiveReward = (id: string) => mutate([updateStmt("rewards", id, { archived_at: now() })], ["rewards"]);
+
+/** Spends tokens on a reward. The balance is recomputed from real activity, so it cannot be overdrawn. */
+export async function redeemReward(id: string): Promise<void> {
+  const st = data();
+  const reward = st.rewards.find((r) => r.id === id && !r.archived_at);
+  if (!reward) throw new Error("That reward no longer exists");
+  const { tokens } = gameState(st);
+  if (tokens < reward.cost) throw new Error(`You need ${reward.cost - tokens} more token${reward.cost - tokens === 1 ? "" : "s"} for this`);
+  await mutate([insertStmt("reward_redemptions", { id: newId(), reward_id: id, title: reward.title, cost: reward.cost, redeemed_at: now() })], ["reward_redemptions"]);
+}
 
 // ---- export / import --------------------------------------------------------
 

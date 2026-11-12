@@ -27,6 +27,7 @@ Conventions: ids are UUID text; calendar dates are local `YYYY-MM-DD` text; inst
 | `notifications` | Fired reminders | `dedupe_key` UNIQUE → each reminder fires once |
 | `smart_views` | Saved task filters | |
 | `backup_history` | Restore/import audit | |
+| `rewards`, `reward_redemptions` | User-defined rewards and what was spent on them (migration 2) | XP, levels and the token balance are **not stored** — they are derived from entries, tasks, sessions and habits; only spending is recorded |
 
 Mapping to the PRD's entity list: *Subtasks* and *Subprojects* are self-references rather than separate tables; *TaskNotes* is `tasks.notes`; *SessionNotes* is `focus_sessions.notes`. *Friends, Groups, Challenges, ChallengeParticipants* arrive with the Phase 7 migration.
 

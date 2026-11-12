@@ -33,13 +33,18 @@ Habits (yes/no, duration, quantity, multiple check-ins), rest days, streaks, wee
 - ⬜ Habit ↔ Pomodoro integration (a focus session does not check in a habit).
 - 🟡 PDF reports go through the system print dialog ("Save as PDF").
 
+## Rewards (added after the original brief) ✅
+Levels, tokens, daily quests, achievements and a reward shop. XP comes only from tracked focus minutes, completed tasks, completed sessions and habits, by rules shown on the page; tokens (1 per 10 XP) are spent on rewards the user defines. Optional — Settings → Appearance.
+
+- 🟡 Un-completing a task after spending its tokens can leave a negative balance; it is shown as-is rather than hidden.
+
 ## Phase 7 — Social ⬜
 Built: local profile, sharing preferences, and a copyable weekly aggregate summary.
 Not built: friends, invitations, groups, challenges, leaderboards, shared focus rooms, and any networking (LAN or remote). The approach and trade-offs are in ARCHITECTURE.md.
 PRD acceptance tests 19 and 20 (two users on one LAN) are therefore **not met**.
 
 ## Phase 8 — Polish and release ⬜
-- ⬜ Windows installer built and tested (a CI workflow that builds the NSIS installer is included but has not run).
+- 🟡 Windows installer: built by CI and attached to GitHub releases; not yet installed and tested on a Windows machine, and not code-signed (Windows SmartScreen will warn).
 - ⬜ Templates for projects, tasks, routines and schedules.
 - ⬜ System tray / background reminders.
 - ⬜ Freely resizable, drag-to-reorder dashboard widgets (today: reorder, hide, half/full width).

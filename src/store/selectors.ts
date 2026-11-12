@@ -3,7 +3,10 @@ import { projectSubtree } from "@/domain/projects";
 import { periodRange } from "@/domain/targets";
 import { secondsByGroup, totalSeconds, type Interval } from "@/domain/time";
 import type { FocusSession, Goal, HabitEntry, Project, Task, TimeEntry } from "@/domain/types";
-import type { HabitDay } from "@/domain/habits";
+import { isDone as habitDone, isScheduled, type HabitDay } from "@/domain/habits";
+import { EMPTY_DAY, levelFor, tokensEarned, totalsOf, type DayActivity, type GameTotals } from "@/domain/game";
+import { secondsByDay } from "@/domain/time";
+import type { Habit, Redemption } from "@/domain/types";
 
 export type EntryInterval = TimeEntry & Interval;
 
@@ -169,4 +172,37 @@ export function nextOccurrenceOnly(tasks: Task[]): Task[] {
     if (!cur || t.occurrence_date < cur.occurrence_date!) earliest.set(t.series_id, t);
   }
   return tasks.filter((t) => !t.series_id || earliest.get(t.series_id) === t);
+}
+
+export interface GameState {
+  days: Map<DateStr, DayActivity>;
+  totals: GameTotals;
+  level: ReturnType<typeof levelFor>;
+  tokensEarned: number;
+  tokensSpent: number;
+  tokens: number;
+}
+
+/** Per-day activity and the XP, level and token balance that follow from it. */
+export function gameState(s: { entries: TimeEntry[]; tasks: Task[]; sessions: FocusSession[]; habits: Habit[]; habitEntries: HabitEntry[]; redemptions: Redemption[] }, today: DateStr = todayStr()): GameState {
+  const days = new Map<DateStr, DayActivity>();
+  const day = (d: DateStr) => {
+    let v = days.get(d);
+    if (!v) days.set(d, (v = { ...EMPTY_DAY }));
+    return v;
+  };
+  for (const [d, seconds] of secondsByDay(intervals(s.entries), -Infinity, Infinity)) day(d).focusSeconds = seconds;
+  for (const t of s.tasks) if (t.status === "completed" && t.completed_at != null) day(todayStr(new Date(t.completed_at))).tasksCompleted++;
+  for (const x of s.sessions) if (x.status === "completed") day(todayStr(new Date(x.started_at))).sessionsCompleted++;
+  for (const h of s.habits) {
+    for (const [d, v] of habitDays(h.id, s.habitEntries)) if (habitDone(h, v)) day(d).habitsDone++;
+  }
+  // "Due" only matters for today's quest; past days are judged on what was done.
+  const t = day(today);
+  t.habitsDue = s.habits.filter((h) => !h.archived_at && isScheduled(h, today) && !habitDays(h.id, s.habitEntries).get(today)?.skipped).length;
+  for (const [d, v] of days) if (d !== today) v.habitsDue = 0;
+  const totals = totalsOf(days);
+  const spent = s.redemptions.reduce((a, r) => a + r.cost, 0);
+  const earned = tokensEarned(totals.xp);
+  return { days, totals, level: levelFor(totals.xp), tokensEarned: earned, tokensSpent: spent, tokens: earned - spent };
 }
