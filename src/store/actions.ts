@@ -102,6 +102,8 @@ export async function updateTask(id: string, patch: Partial<TaskInput>): Promise
     if (v.status === "completed" && !task.parent_id) stmts.push(...logStmt(task.project_id, "task_completed", `Task completed: ${task.title}`));
   }
   if (task.series_id && Object.keys(v).some((k) => DETACHING.includes(k))) next.is_detached = 1;
+  // Organising an inbox item (giving it a project or a date) moves it out of the inbox.
+  if (task.status === "inbox" && !v.status && (v.project_id || v.due_date || v.scheduled_at)) next.status = "not_started";
   if ("project_id" in v && v.project_id !== task.project_id) {
     // Subtasks always live in their parent's project.
     stmts.push({ sql: "UPDATE tasks SET project_id = ? WHERE parent_id = ?", params: [v.project_id ?? null, id] });

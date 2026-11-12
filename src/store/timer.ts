@@ -183,7 +183,7 @@ export async function restoreTimer(): Promise<void> {
   try {
     const timer = JSON.parse(row.value) as ActiveTimer;
     const now = Date.now();
-    useTimer.setState({ timer, now, gap: detectGap(timer, now, GAP_THRESHOLD_MS) });
+    useTimer.setState({ timer, now, gap: timer.phase === "focus" ? detectGap(timer, now, GAP_THRESHOLD_MS) : null });
   } catch {
     await db().execute("DELETE FROM settings WHERE key = ?", [KEY]);
   }
@@ -202,7 +202,8 @@ export async function tick(): Promise<void> {
     return;
   }
   // A long silence between ticks means the machine slept (or the process was frozen).
-  if (!gap && lastTick && now - lastTick > GAP_THRESHOLD_MS) {
+  // Breaks are not tracked time, so an absence during a break needs no decision.
+  if (!gap && timer.phase === "focus" && lastTick && now - lastTick > GAP_THRESHOLD_MS) {
     const g = detectGap({ ...timer, lastSeenAt: Math.max(timer.lastSeenAt, lastTick) }, now, GAP_THRESHOLD_MS);
     if (g) {
       lastTick = now;

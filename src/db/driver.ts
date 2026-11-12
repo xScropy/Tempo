@@ -124,9 +124,11 @@ export async function migrate(driver: Driver): Promise<number[]> {
 }
 
 let current: Driver | null = null;
+let opening: Promise<Driver> | null = null;
 
-export async function openDatabase(): Promise<Driver> {
-  if (current) return current;
+export const openDatabase = (): Promise<Driver> => (opening ??= open());
+
+async function open(): Promise<Driver> {
   let driver: Driver;
   if (isTauri()) driver = await tauriDriver();
   else {

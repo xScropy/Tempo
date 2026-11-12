@@ -105,3 +105,68 @@ export function goalProgress(
   } else current = g.manual_value;
   return { current, target: g.target_value, fraction: Math.min(1, current / g.target_value), start, end, unit };
 }
+
+const childCache = new WeakMap<Task[], Map<string, Task[]>>();
+/** Subtasks grouped by parent id (cached per tasks array). */
+export function subtasksByParent(tasks: Task[]): Map<string, Task[]> {
+  let v = childCache.get(tasks);
+  if (!v) {
+    v = new Map();
+    for (const t of tasks) if (t.parent_id) v.set(t.parent_id, [...(v.get(t.parent_id) ?? []), t]);
+    childCache.set(tasks, v);
+  }
+  return v;
+}
+
+const byIdCache = new WeakMap<object[], Map<string, unknown>>();
+/** id → row lookup, cached per array. */
+export function byId<T extends { id: string }>(list: T[]): Map<string, T> {
+  let v = byIdCache.get(list) as Map<string, T> | undefined;
+  if (!v) {
+    v = new Map(list.map((x) => [x.id, x]));
+    byIdCache.set(list, v);
+  }
+  return v;
+}
+
+const NO_TASKS: Task[] = [];
+export const subtasksOf = (tasks: Task[], id: string): Task[] => subtasksByParent(tasks).get(id) ?? NO_TASKS;
+
+/** True when the task waits on a dependency that is still open. */
+export function isBlocked(taskId: string, deps: Array<{ task_id: string; depends_on_id: string }>, tasks: Task[]): boolean {
+  if (!deps.length) return false;
+  const map = byId(tasks);
+  return deps.some((d) => {
+    if (d.task_id !== taskId) return false;
+    const dep = map.get(d.depends_on_id);
+    return !!dep && dep.status !== "completed" && dep.status !== "cancelled";
+  });
+}
+
+/** Consecutive days with tracked focus time, ending today (an empty today does not break it). */
+export function focusStreak(entries: TimeEntry[], today: DateStr): number {
+  const days = new Set<DateStr>();
+  for (const e of entries) {
+    for (let d = dayStartMs(todayStr(new Date(e.started_at))); d < e.ended_at; d += 86_400_000) days.add(todayStr(new Date(d)));
+  }
+  let streak = 0;
+  for (let d = today, i = 0; i < 3660; d = addDays(d, -1), i++) {
+    if (days.has(d)) streak++;
+    else if (d !== today) break;
+  }
+  return streak;
+}
+
+/**
+ * Collapses recurring tasks to the next open occurrence of each series, so a
+ * daily task shows up once in planning lists instead of once per future day.
+ */
+export function nextOccurrenceOnly(tasks: Task[]): Task[] {
+  const earliest = new Map<string, Task>();
+  for (const t of tasks) {
+    if (!t.series_id || !t.occurrence_date) continue;
+    const cur = earliest.get(t.series_id);
+    if (!cur || t.occurrence_date < cur.occurrence_date!) earliest.set(t.series_id, t);
+  }
+  return tasks.filter((t) => !t.series_id || earliest.get(t.series_id) === t);
+}
