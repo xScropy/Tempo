@@ -128,7 +128,9 @@ html[lang="ar"] {
 }
 /* Letter-spacing breaks the joins between Arabic letters, and there is no upper case. */
 html[lang="ar"] * { letter-spacing: 0 !important; text-transform: none !important; }
-html[lang="ar"] .font-mono, html[lang="ar"] code, html[lang="ar"] kbd { font-family: "Cascadia Mono", "JetBrains Mono", ui-monospace, Consolas, monospace; }
+/* Notes are prose: Arabic in a monospace face is hard to read, so text areas keep the UI font. */
+html[lang="ar"] textarea.font-mono { font-family: var(--font-ui), "Segoe UI", system-ui, sans-serif; }
+html[lang="ar"] code, html[lang="ar"] kbd { font-family: "Cascadia Mono", "JetBrains Mono", ui-monospace, Consolas, monospace; }
 
 /* ---- accent themes ------------------------------------------------------------- */
 /* Each accent is checked for at least 4.5:1 contrast against its own text colour, in light and in dark. */

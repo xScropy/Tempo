@@ -150,7 +150,7 @@ export const TaskRow = memo(function TaskRow({ task, showProject = true, indent,
           {(task.estimated_seconds || actual > 0) && (
             <span className="tabular inline-flex items-center gap-1" title={tr("Tracked / estimated")}>
               <Clock size={11} className="text-ink-3" />
-              {actual > 0 ? fmtDuration(actual) : "0m"}
+              {fmtDuration(actual)}
               {task.estimated_seconds ? <span className="text-ink-3">/ {fmtDuration(task.estimated_seconds)}</span> : null}
             </span>
           )}

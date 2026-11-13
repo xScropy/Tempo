@@ -1,4 +1,4 @@
-import { tn, tr } from "@/i18n";
+import { eg, tn, tr } from "@/i18n";
 import { MoreHorizontal, Play, Plus, Target } from "lucide-react";
 import { useMemo, useState } from "react";
 import { fmtDate, fmtDuration } from "@/domain/dates";
@@ -39,16 +39,16 @@ function TargetDialog({ target, onClose }: { target?: TimeTarget; onClose: () =>
           <Input autoFocus value={f.name} placeholder={tr("English learning")} onChange={(e) => setF({ ...f, name: e.target.value })} />
         </Field>
         <Field label={tr("Weekly target")}>
-          <DurationInput value={f.weekly} onChange={(v) => setF({ ...f, weekly: v })} placeholder="e.g. 5h" />
+          <DurationInput value={f.weekly} onChange={(v) => setF({ ...f, weekly: v })} placeholder={eg("5h")} />
         </Field>
         <Field label={tr("Preferred sessions per week")}>
           <Input type="number" min={1} max={7} value={f.days ?? ""} placeholder={tr("Flexible")} onChange={(e) => setF({ ...f, days: e.target.value ? Math.min(7, Math.max(1, Number(e.target.value))) : null })} />
         </Field>
         <Field label={tr("Minimum session")}>
-          <DurationInput value={f.min} onChange={(v) => setF({ ...f, min: v })} placeholder="e.g. 1h" />
+          <DurationInput value={f.min} onChange={(v) => setF({ ...f, min: v })} placeholder={eg("1h")} />
         </Field>
         <Field label={tr("Maximum session")}>
-          <DurationInput value={f.max} onChange={(v) => setF({ ...f, max: v })} placeholder="e.g. 3h" />
+          <DurationInput value={f.max} onChange={(v) => setF({ ...f, max: v })} placeholder={eg("3h")} />
         </Field>
         <Field label={tr("Category")} className="col-span-2">
           <Select value={f.category_id} onChange={(e) => setF({ ...f, category_id: e.target.value })}>

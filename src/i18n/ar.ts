@@ -34,6 +34,18 @@ const extra: Record<string, string> = {
   "Creature of habit": "صاحب عادات", "Complete habits 50 times": "أتمّ عاداتك 50 مرة",
   "Quest hunter": "صيّاد التحديات", "Finish 20 daily quests": "أنهِ 20 تحدياً يومياً",
   "Quest complete": "اكتمل التحدي",
+  // small leftovers
+  "No task — quick focus": "بلا مهمة — تركيز سريع", "Add a task and press Enter": "أضف مهمة ثم اضغط Enter", "Untitled focus": "تركيز بلا عنوان",
+  "Focus Together": "تركيز جماعي", "Invalid input": "إدخال غير صالح", Untagged: "بلا وسم", Tracked: "المسجَّل",
+  "Still up": "ما زلت ساهراً", "Good morning": "صباح الخير", "Good afternoon": "مساء الخير", "Good evening": "مساء الخير", ",": "،",
+  "Start a group": "ابدأ مجموعة", "You get a code to send to friends. Works across different networks.": "تحصل على رمز ترسله إلى أصدقائك. يعمل بين شبكات مختلفة.",
+  "Join with a code": "انضم برمز", "A friend already started a group and sent you its code.": "صديق أنشأ مجموعة وأرسل إليك رمزها.",
+  "Start date": "تاريخ البدء", "Due date": "تاريخ الاستحقاق", "Estimated (min)": "المقدَّر (دقيقة)", "Tracked (min)": "المسجَّل (دقيقة)", "Completed at": "وقت الإنجاز", "Parent task": "المهمة الأم",
+  "Start time": "وقت البدء", "End time": "وقت الانتهاء", Source: "المصدر",
+  // project activity log (stored in English, shown translated)
+  "Project created": "أُنشئ المشروع", "Deadline removed": "أُزيل الموعد النهائي",
+  active: "نشط", "on hold": "معلَّق", planned: "مخطَّط", completed: "مكتمل", cancelled: "ملغى",
+  "From {0}": "من {0}", Milestone: "مرحلة", week: "أسبوع", day: "يوم",
   // reactions
   "Keep going": "واصل",
   // badges awarded by the server
@@ -137,4 +149,14 @@ export const AR_PATTERNS: Record<string, string> = {
   "{0} joined the room": "{0} انضم إلى الغرفة",
   "{0} joined": "{0} انضم",
   "{0} left": "{0} غادر",
+  "Subproject created under {0}": "أُنشئ مشروعاً فرعياً من {0}",
+  "Subproject added: {0}": "أُضيف مشروع فرعي: {0}",
+  "Deadline changed to {0}": "تغيّر الموعد النهائي إلى {0}",
+  "Status changed to {0}": "تغيّرت الحالة إلى: {0}",
+  "Task added: {0}": "أُضيفت مهمة: {0}",
+  "Task completed: {0}": "أُنجزت مهمة: {0}",
+  "Milestone added: {0}": "أُضيفت مرحلة: {0}",
+  "Milestone achieved: {0}": "تحققت مرحلة: {0}",
+  "Focus session completed ({0} min)": "اكتملت جلسة تركيز ({0} دقيقة)",
+  "Focus session stopped ({0} min)": "توقفت جلسة تركيز ({0} دقيقة)",
 };

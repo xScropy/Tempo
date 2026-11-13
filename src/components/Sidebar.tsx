@@ -64,7 +64,7 @@ export function TimerChip({ compact }: { compact?: boolean }) {
   if (!timer) return null;
   const remaining = remainingMs(timer, now);
   const running = isRunning(timer);
-  const label = timer.phase === "focus" ? (task?.title ?? (timer.objective || "Quick focus")) : timer.phase === "long_break" ? "Long break" : "Short break";
+  const label = timer.phase === "focus" ? (task?.title ?? (timer.objective || tr("Quick focus"))) : timer.phase === "long_break" ? tr("Long break") : tr("Short break");
   const clock = fmtClock((remaining ?? elapsed) / 1000);
   if (compact) {
     return (

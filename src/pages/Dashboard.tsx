@@ -1,4 +1,4 @@
-import { tn, tr } from "@/i18n";
+import { td, tn, tr } from "@/i18n";
 import { ArrowDown, ArrowUp, CalendarDays, Check, Eye, EyeOff, FolderPlus, Play, Plus, Repeat2, Settings2, Timer, Zap } from "lucide-react";
 import { useMemo, useState } from "react";
 import { addDays, dayStartMs, diffDays, fmtDate, fmtDuration, fromDateStr, monthName, timeOf, weekdayName, weekdayLong } from "@/domain/dates";
@@ -158,9 +158,9 @@ function Deadlines() {
     const until = addDays(today, 14);
     const pm = byId(projects);
     return [
-      ...nextOccurrenceOnly(tasks.filter((t) => !t.parent_id && isOpen(t) && t.due_date && t.due_date <= until)).map((t) => ({ key: t.id, date: t.due_date!, label: t.title, kind: "Task", go: () => openTask(t.id) })),
-      ...projects.filter((p) => p.deadline && p.deadline <= until && p.status !== "completed" && p.status !== "cancelled").map((p) => ({ key: p.id, date: p.deadline!, label: p.name, kind: "Project", go: () => navigate("projects", p.id) })),
-      ...milestones.filter((m) => m.due_date && m.due_date <= until && !m.completed_at).map((m) => ({ key: m.id, date: m.due_date!, label: `${m.title} · ${pm.get(m.project_id)?.name ?? ""}`, kind: "Milestone", go: () => navigate("projects", m.project_id) })),
+      ...nextOccurrenceOnly(tasks.filter((t) => !t.parent_id && isOpen(t) && t.due_date && t.due_date <= until)).map((t) => ({ key: t.id, date: t.due_date!, label: t.title, kind: tr("Task"), go: () => openTask(t.id) })),
+      ...projects.filter((p) => p.deadline && p.deadline <= until && p.status !== "completed" && p.status !== "cancelled").map((p) => ({ key: p.id, date: p.deadline!, label: p.name, kind: tr("Project"), go: () => navigate("projects", p.id) })),
+      ...milestones.filter((m) => m.due_date && m.due_date <= until && !m.completed_at).map((m) => ({ key: m.id, date: m.due_date!, label: `${m.title} · ${pm.get(m.project_id)?.name ?? ""}`, kind: tr("Milestone"), go: () => navigate("projects", m.project_id) })),
     ].sort((a, b) => a.date.localeCompare(b.date)).slice(0, 8);
   }, [tasks, projects, milestones, today]);
   if (!items.length) return <None>{tr("No deadlines in the next two weeks.")}</None>;
@@ -235,7 +235,7 @@ function Categories() {
           <div className="h-2 flex-1 overflow-hidden rounded-sm bg-hover">
             <div className="h-full rounded-sm" style={{ width: `${(r.seconds / max) * 100}%`, background: r.color ?? "rgb(var(--ink-3))" }} />
           </div>
-          <span className="tabular w-14 shrink-0 text-end text-ink-2">{fmtDuration(r.seconds)}</span>
+          <span className="tabular w-20 shrink-0 whitespace-nowrap text-end text-ink-2">{fmtDuration(r.seconds)}</span>
         </div>
       ))}
     </div>
@@ -251,7 +251,7 @@ function Activity() {
     <div>
       {logs.slice(0, 7).map((l) => (
         <button key={l.id} type="button" onClick={() => navigate("projects", l.project_id)} className="flex w-full gap-3 border-b border-line px-3 py-1.5 text-start text-sm last:border-0 hover:bg-hover/50">
-          <span className="min-w-0 flex-1 truncate">{l.message}</span>
+          <span className="min-w-0 flex-1 truncate">{td(l.message)}</span>
           <span className="max-w-[110px] shrink-0 truncate text-xs text-ink-3">{pm.get(l.project_id)?.name}</span>
         </button>
       ))}
@@ -300,7 +300,7 @@ export function DashboardPage() {
   const layout = settings.dashboard;
   const name = useData((s) => s.profile?.display_name);
   const hour = new Date().getHours();
-  const greeting = `${hour < 5 ? "Still up" : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"}${name ? `, ${name.split(" ")[0]}` : ""}`;
+  const greeting = `${hour < 5 ? tr("Still up") : hour < 12 ? tr("Good morning") : hour < 18 ? tr("Good afternoon") : tr("Good evening")}${name ? `${tr(",")} ${name.split(" ")[0]}` : ""}`;
 
   const m = useMemo(() => {
     const dayFrom = dayStartMs(today);

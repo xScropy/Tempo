@@ -55,6 +55,12 @@ Editing one occurrence marks it `is_detached`; series edits skip detached and co
 
 **9. No opaque scores.** Project health is a status plus the plain-language reasons that produced it. Analytics shows measured quantities only.
 
+## Languages and direction
+
+`src/i18n` holds the localisation. English text is the lookup key: `tr("New task")` returns the Arabic string in Arabic and the text itself otherwise, so the source stays readable and an untranslated string degrades to English rather than to nothing. `tn(n, "task")` produces counted nouns (Arabic has distinct forms for one, two, 3–10 and 11+), and `td()` translates sentences composed elsewhere — the social server and the stored project activity log write English — by matching known patterns.
+
+The language is read synchronously from localStorage before the first render (and mirrored in the settings table); changing it reloads the window. That keeps `tr` a plain function usable in module-level tables, and lets `<html dir>` and the font be right from the first paint. Layout uses logical CSS utilities (`ps-`, `ms-`, `start-`, `border-s`) throughout, so right-to-left is the same markup, not a second stylesheet. `e2e/arabic.cjs` walks every screen in Arabic and fails on any visible text left in English.
+
 ## Social layer
 
 Built as a separate layer in `src/social/`; the core never depends on it. One `SocialServer` class holds all the logic and runs either inside a friend's app (LAN hosting, with `src-tauri/src/lan.rs` relaying WebSocket frames) or in the standalone Node server (`server/main.ts`). The app-side client only *observes* the timer and time entries and never writes to them. Full design, protocol, privacy model and limits: [docs/SOCIAL.md](docs/SOCIAL.md).

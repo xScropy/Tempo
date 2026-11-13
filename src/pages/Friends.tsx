@@ -1,4 +1,4 @@
-import { LOCALE, at, hash, tn, tr } from "@/i18n";
+import { LOCALE, at, hash, td, tn, tr } from "@/i18n";
 import { ArrowDown, ArrowUp, Ban, BellOff, Check, Copy, Lock, LogOut, MoreHorizontal, Play, Plus, RefreshCw, Search, Trophy, UserPlus, Users, Wifi, WifiOff, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { isTauri } from "@/db/driver";
@@ -88,8 +88,8 @@ function Onboarding() {
           <div className="grid grid-cols-2 gap-2">
             {(
               [
-                ["new-group", "Start a group", "You get a code to send to friends. Works across different networks."],
-                ["join-group", "Join with a code", "A friend already started a group and sent you its code."],
+                ["new-group", tr("Start a group"), tr("You get a code to send to friends. Works across different networks.")],
+                ["join-group", tr("Join with a code"), tr("A friend already started a group and sent you its code.")],
               ] as const
             ).map(([m, title, text]) => (
               <button key={m} type="button" aria-pressed={mode === m} onClick={() => setMode(m)} className={cx("rounded-md border px-3 py-2.5 text-start", mode === m ? "border-accent bg-accent/5" : "border-line-strong hover:bg-hover/50")}>
@@ -188,7 +188,7 @@ function FriendDialog({ friend, onClose }: { friend: FriendView; onClose: () => 
       {friend.badges.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1.5">
           {friend.badges.map((b) => (
-            <Badge key={b} tone="accent"><Trophy size={10} /> {b}</Badge>
+            <Badge key={b} tone="accent"><Trophy size={10} /> {td(b)}</Badge>
           ))}
         </div>
       )}
@@ -377,7 +377,7 @@ function FriendsTab({ snap }: { snap: Snapshot }) {
             {snap.feed.slice(0, 5).map((f) => (
               <div key={f.id} className="flex gap-2 border-b border-line px-3 py-1.5 text-sm last:border-0">
                 <Avatar user={f.user} size={20} />
-                <span className="min-w-0 flex-1"><span className="font-medium">{f.user.displayName}</span> <span className="text-ink-2">{f.text}</span></span>
+                <span className="min-w-0 flex-1"><span className="font-medium">{f.user.displayName}</span> <span className="text-ink-2">{td(f.text)}</span></span>
               </div>
             ))}
           </Section>
@@ -398,7 +398,7 @@ function ActivityTab({ snap }: { snap: Snapshot }) {
         <div key={f.id} className="flex gap-3 border-b border-line px-3 py-2.5 last:border-0">
           <Avatar user={f.user} size={32} />
           <div className="min-w-0 flex-1">
-            <div><span className="font-medium">{f.user.displayName}</span> <span className="text-ink-2">{f.text}</span></div>
+            <div><span className="font-medium">{f.user.displayName}</span> <span className="text-ink-2">{td(f.text)}</span></div>
             <div className="mt-1 flex flex-wrap items-center gap-1.5">
               <span className="me-1 text-xs text-ink-3">{new Date(f.at).toLocaleString(LOCALE, { weekday: "short", hour: "2-digit", minute: "2-digit" })}</span>
               {REACTIONS.map((r) => {
@@ -601,7 +601,7 @@ function ChallengeCard({ c, snap }: { c: ChallengeView; snap: Snapshot }) {
       {c.events.length > 0 && (
         <div className="border-t border-line px-3 py-2 text-xs text-ink-2">
           {c.events.slice(0, 4).map((e, i) => (
-            <div key={i} className="flex gap-2"><span className="tabular w-28 shrink-0 text-ink-3">{new Date(e.at).toLocaleString(LOCALE, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>{e.text}</div>
+            <div key={i} className="flex gap-2"><span className="tabular w-28 shrink-0 text-ink-3">{new Date(e.at).toLocaleString(LOCALE, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>{td(e.text)}</div>
           ))}
         </div>
       )}
@@ -783,7 +783,7 @@ function ProfileTab({ snap }: { snap: Snapshot }) {
             <div className="flex flex-wrap gap-1.5">
               {me.badges.length === 0 && <span className="text-xs text-ink-3">{tr("Badges are earned from real tracked activity: 10 Pomodoros, a 10-hour week, a 7-day streak, a reached weekly goal, a challenge win.")}</span>}
               {me.badges.map((b) => (
-                <Badge key={b} tone="accent"><Trophy size={10} /> {b}</Badge>
+                <Badge key={b} tone="accent"><Trophy size={10} /> {td(b)}</Badge>
               ))}
             </div>
           </div>

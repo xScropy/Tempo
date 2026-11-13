@@ -376,4 +376,4 @@ export const goalInput = z.object({
 export type GoalInput = z.infer<typeof goalInput>;
 
 /** First human-readable message of a zod error. */
-export const zodMessage = (e: unknown): string => (e instanceof z.ZodError ? (e.issues[0]?.message ?? "Invalid input") : e instanceof Error ? e.message : String(e));
+export const zodMessage = (e: unknown): string => (e instanceof z.ZodError ? (e.issues[0]?.message ?? tr("Invalid input")) : e instanceof Error ? e.message : String(e));

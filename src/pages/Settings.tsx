@@ -2,7 +2,7 @@ import { LOCALE, hash, lang, storeLang, tr, type Lang } from "@/i18n";
 import { Check, Download, Trash2, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { isTauri } from "@/db/driver";
-import { dateOfMs, timeOf, todayStr, weekdayName } from "@/domain/dates";
+import { dateOfMs, timeOf, todayStr, weekdayLong } from "@/domain/dates";
 import { PRIORITY_LABEL, STATUS_LABEL } from "@/domain/types";
 import { attempt, notify, toast } from "@/lib/notify";
 import { backups, pickTextFile, registerQuickCapture, saveFile, type BackupInfo } from "@/lib/platform";
@@ -59,7 +59,7 @@ async function exportTasksCsv() {
     (s.taskTags[t.id] ?? []).map((id) => s.tags.find((g) => g.id === id)?.name).filter(Boolean).join(" "), t.start_date ?? "", t.due_date ?? "",
     t.estimated_seconds ? Math.round(t.estimated_seconds / 60) : "", Math.round((actual.get(t.id) ?? 0) / 60), t.completed_at ? new Date(t.completed_at).toISOString() : "", t.parent_id ? (s.tasks.find((p) => p.id === t.parent_id)?.title ?? "") : "",
   ]);
-  await attempt(() => saveFile(`tempo-tasks-${stamp()}.csv`, toCsv(["Title", "Status", "Priority", "Project", "Category", "Tags", "Start date", "Due date", "Estimated (min)", "Tracked (min)", "Completed at", "Parent task"], lines), "text/csv"));
+  await attempt(() => saveFile(`tempo-tasks-${stamp()}.csv`, toCsv([tr("Title"), tr("Status"), tr("Priority"), tr("Project"), tr("Category"), tr("Tags"), tr("Start date"), tr("Due date"), tr("Estimated (min)"), tr("Tracked (min)"), tr("Completed at"), tr("Parent task")], lines), "text/csv"));
 }
 
 async function exportTimeCsv() {
@@ -68,7 +68,7 @@ async function exportTimeCsv() {
     dateOfMs(e.started_at), timeOf(e.started_at), timeOf(e.ended_at), Math.round((e.ended_at - e.started_at) / 60_000), s.tasks.find((t) => t.id === e.task_id)?.title ?? "",
     s.projects.find((p) => p.id === e.project_id)?.name ?? "", s.categories.find((c) => c.id === e.category_id)?.name ?? "", s.targets.find((t) => t.id === e.target_id)?.name ?? "", e.source, e.description,
   ]);
-  await attempt(() => saveFile(`tempo-time-${stamp()}.csv`, toCsv(["Date", "Start", "End", "Minutes", "Task", "Project", "Category", "Activity", "Source", "Description"], lines), "text/csv"));
+  await attempt(() => saveFile(`tempo-time-${stamp()}.csv`, toCsv([tr("Date"), tr("Start time"), tr("End time"), tr("Minutes"), tr("Task"), tr("Project"), tr("Category"), tr("Activity"), tr("Source"), tr("Description")], lines), "text/csv"));
 }
 
 async function importJson() {
@@ -208,7 +208,7 @@ export function SettingsPage() {
               <Field label={tr("Week starts on")} hint={tr("Weekly targets, goals and reports all follow this.")}>
                 <Select value={settings.weekStart} onChange={(e) => void attempt(() => setSetting("weekStart", Number(e.target.value)))}>
                   {[1, 0, 6].map((d) => (
-                    <option key={d} value={d}>{{ 1: "Monday", 0: "Sunday", 6: "Saturday" }[d]} ({weekdayName(d)})</option>
+                    <option key={d} value={d}>{weekdayLong(d)}</option>
                   ))}
                 </Select>
               </Field>

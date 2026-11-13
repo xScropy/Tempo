@@ -1,4 +1,4 @@
-import { tn, tr } from "@/i18n";
+import { isRtl, tn, tr } from "@/i18n";
 import { Printer } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -62,7 +62,7 @@ function Distribution({ rows, total }: { rows: Array<{ key: string; label: strin
           <div className="h-2 flex-1 overflow-hidden rounded-sm bg-hover">
             <div className="h-full rounded-sm" style={{ width: `${(r.seconds / max) * 100}%`, background: r.key === "" ? "rgb(var(--ink-3))" : "var(--chart-1)" }} />
           </div>
-          <span className="tabular w-16 shrink-0 text-end">{fmtDuration(r.seconds)}</span>
+          <span className="tabular w-20 shrink-0 whitespace-nowrap text-end">{fmtDuration(r.seconds)}</span>
           <span className="tabular w-10 shrink-0 text-end text-xs text-ink-3">{total ? Math.round((r.seconds / total) * 100) : 0}%</span>
         </div>
       ))}
@@ -141,7 +141,7 @@ export function AnalyticsPage() {
     const gm = byId(s.tags);
     const key = (e: (typeof m.inRange)[number]) => (dim === "project" ? e.project_id : dim === "category" ? e.category_id : dim === "task" ? e.task_id : e.task_id ? (s.taskTags[e.task_id] ?? []) : []);
     const label = (k: string) => (dim === "project" ? pm.get(k)?.name : dim === "category" ? cm.get(k)?.name : dim === "task" ? tm.get(k)?.title : gm.get(k) ? `#${gm.get(k)!.name}` : undefined);
-    const none = { project: "No project", category: "Uncategorised", task: "No task", tag: "Untagged" }[dim];
+    const none = { project: tr("No project"), category: tr("Uncategorised"), task: tr("No task"), tag: tr("Untagged") }[dim];
     return [...secondsByGroup(m.inRange, key, from, to).entries()].map(([k, seconds]) => ({ key: k, label: k === "" ? none : (label(k) ?? tr("(deleted)")), seconds })).sort((a, b) => b.seconds - a.seconds);
   }, [m.inRange, dim, s.projects, s.categories, s.tasks, s.tags, s.taskTags, from, to]);
 
@@ -176,17 +176,17 @@ export function AnalyticsPage() {
           <Stat label={tr("Estimate accuracy")} value={m.est.accuracy == null ? "—" : `${Math.round(m.est.accuracy * 100)}%`} sub={m.est.samples ? tn(m.est.samples, "estimated task") : tr("no estimated tasks done")} />
         </div>
 
-        <Section title={tr("Planned vs. tracked time per {0} (hours)", m.weekly ? "week" : "day")}>
+        <Section title={tr("Planned vs. tracked time per {0} (hours)", m.weekly ? tr("week") : tr("day"))}>
           <div className="h-[240px] px-2 py-3">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={m.series} barGap={2} barCategoryGap="22%">
                 <CartesianGrid vertical={false} stroke="rgb(var(--line))" />
-                <XAxis dataKey="label" tick={axis} tickLine={false} axisLine={{ stroke: "rgb(var(--line-strong))" }} interval={m.series.length > 16 ? 1 : 0} />
-                <YAxis tick={axis} tickLine={false} axisLine={false} width={34} allowDecimals={false} />
+                <XAxis dataKey="label" reversed={isRtl} tick={axis} tickLine={false} axisLine={{ stroke: "rgb(var(--line-strong))" }} interval={m.series.length > 16 ? 1 : 0} />
+                <YAxis orientation={isRtl ? "right" : "left"} tick={axis} tickLine={false} axisLine={false} width={40} allowDecimals={false} />
                 <Tooltip content={<ChartTip />} cursor={{ fill: "rgb(var(--hover))", opacity: 0.6 }} />
                 <Legend itemSorter={null} iconType="square" iconSize={8} wrapperStyle={{ fontSize: 12 }} formatter={(v) => <span style={{ color: "rgb(var(--ink-2))" }}>{v}</span>} />
-                <Bar dataKey="Tracked" fill="var(--chart-1)" radius={[3, 3, 0, 0]} maxBarSize={22} isAnimationActive={false} />
-                <Bar dataKey="Planned" fill="var(--chart-2)" radius={[3, 3, 0, 0]} maxBarSize={22} isAnimationActive={false} />
+                <Bar dataKey="Tracked" name={tr("Tracked")} fill="var(--chart-1)" radius={[3, 3, 0, 0]} maxBarSize={22} isAnimationActive={false} />
+                <Bar dataKey="Planned" name={tr("Planned time")} fill="var(--chart-2)" radius={[3, 3, 0, 0]} maxBarSize={22} isAnimationActive={false} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -206,10 +206,10 @@ export function AnalyticsPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={hourData} barCategoryGap="18%">
                   <CartesianGrid vertical={false} stroke="rgb(var(--line))" />
-                  <XAxis dataKey="label" tick={axis} tickLine={false} axisLine={{ stroke: "rgb(var(--line-strong))" }} interval={2} tickFormatter={(v: string) => v.slice(0, 2)} />
-                  <YAxis tick={axis} tickLine={false} axisLine={false} width={34} />
+                  <XAxis dataKey="label" reversed={isRtl} tick={axis} tickLine={false} axisLine={{ stroke: "rgb(var(--line-strong))" }} interval={2} tickFormatter={(v: string) => v.slice(0, 2)} />
+                  <YAxis orientation={isRtl ? "right" : "left"} tick={axis} tickLine={false} axisLine={false} width={40} />
                   <Tooltip content={<ChartTip />} cursor={{ fill: "rgb(var(--hover))", opacity: 0.6 }} />
-                  <Bar dataKey="Tracked" fill="var(--chart-1)" radius={[3, 3, 0, 0]} isAnimationActive={false} />
+                  <Bar dataKey="Tracked" name={tr("Tracked")} fill="var(--chart-1)" radius={[3, 3, 0, 0]} isAnimationActive={false} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

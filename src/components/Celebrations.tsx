@@ -62,7 +62,7 @@ export function Celebrations() {
 
     const newQuests = quests.filter((q) => !p.quests.has(q));
     const newAch = unlocked.filter((a) => !p.unlocked.has(a.id));
-    popXp(gained, newQuests.length ? "Quest complete" : undefined);
+    popXp(gained, newQuests.length ? tr("Quest complete") : undefined);
 
     if (g.level.level > p.level) {
       useCelebrate.setState({ levelUp: { level: g.level.level, tokens: tokensEarned(xpForLevel(g.level.level)) - tokensEarned(xpForLevel(p.level)) } });

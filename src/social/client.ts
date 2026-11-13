@@ -1,4 +1,4 @@
-import { tr } from "@/i18n";
+import { td, tr } from "@/i18n";
 import { create } from "zustand";
 import { db, isTauri } from "@/db/driver";
 import { elapsedMs, isRunning } from "@/domain/timer";
@@ -134,7 +134,7 @@ function onRoomTimer(timer: RoomView["timer"], serverNow: number) {
   const prefs = data().settings.socialPrefs;
   if (!timer || timer.kind !== "focus" || !prefs.followRoomTimer || useTimer.getState().timer) return;
   const minutes = Math.round((timer.startedAt + timer.plannedMs - serverNow) / 60_000);
-  if (minutes >= 1) void startSession({ mode: "countdown", minutes, objective: "Focus Together" }).catch(() => undefined);
+  if (minutes >= 1) void startSession({ mode: "countdown", minutes, objective: tr("Focus Together") }).catch(() => undefined);
 }
 
 function onPush(msg: ServerPush) {
@@ -151,7 +151,7 @@ function onPush(msg: ServerPush) {
   const t = useTimer.getState().timer;
   if (!shouldNotify(msg.kind, msg.from, prefs, !!t && t.phase === "focus" && isRunning(t))) return;
   // Friend activity is frequent: in-app only. Everything else may use a desktop notification.
-  void notify(msg.title, msg.body, data().settings.notifications && CATEGORY[msg.kind] !== "friendActivity");
+  void notify(td(msg.title), td(msg.body), data().settings.notifications && CATEGORY[msg.kind] !== "friendActivity");
 }
 
 /** A plain WebSocket to a server address. */

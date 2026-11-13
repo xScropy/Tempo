@@ -7,7 +7,7 @@ import { byId } from "@/store/selectors";
 import { Input, Popover, cx } from "./ui";
 
 /** Searchable picker over open tasks (and subtasks). */
-export function TaskPicker({ value, onChange, placeholder = "No task — quick focus" }: { value: string | null; onChange: (id: string | null) => void; placeholder?: string }) {
+export function TaskPicker({ value, onChange, placeholder = tr("No task — quick focus") }: { value: string | null; onChange: (id: string | null) => void; placeholder?: string }) {
   const tasks = useData((s) => s.tasks);
   const projects = useData((s) => s.projects);
   const [open, setOpen] = useState(false);

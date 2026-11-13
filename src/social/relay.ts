@@ -90,21 +90,21 @@ export class Mqtt {
         }
         reject(new Error(why));
       };
-      const timer = setTimeout(() => fail("The relay did not answer"), timeoutMs);
+      const timer = setTimeout(() => fail(tr("The relay did not answer")), timeoutMs);
       ws.onopen = () => {
         const id = `tempo-${Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => b.toString(16).padStart(2, "0")).join("")}`;
         // protocol "MQTT" level 4, clean session, 60 s keep-alive
         ws.send(packet(0x10, str("MQTT"), [4, 0x02, 0, 60], str(id)));
       };
-      ws.onerror = () => fail("Could not reach the relay");
+      ws.onerror = () => fail(tr("Could not reach the relay"));
       ws.onclose = () => {
-        fail("The relay closed the connection");
+        fail(tr("The relay closed the connection"));
         m.shutdown();
       };
       ws.onmessage = (ev) => {
         m.feed(new Uint8Array(ev.data as ArrayBuffer), (rc) => {
           clearTimeout(timer);
-          if (rc !== 0) return fail("The relay refused the connection");
+          if (rc !== 0) return fail(tr("The relay refused the connection"));
           done = true;
           m.ping = setInterval(() => ws.readyState === 1 && ws.send(packet(0xc0)), 30_000);
           resolve(m);

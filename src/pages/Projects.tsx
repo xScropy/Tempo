@@ -1,4 +1,4 @@
-import { LOCALE, tn, tr } from "@/i18n";
+import { LOCALE, eg, td, tn, tr } from "@/i18n";
 import { ArrowLeft, Check, ChevronRight, Folder, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { dateOfMs, diffDays, fmtDate, fmtDuration, fmtHours, startOfWeek, type DateStr } from "@/domain/dates";
@@ -362,7 +362,7 @@ function ProjectDetail({ project }: { project: Project }) {
               {myLogs.slice(0, 200).map((l) => (
                 <div key={l.id} className="flex gap-3 border-b border-line px-3 py-1.5 text-sm last:border-0">
                   <span className="tabular w-32 shrink-0 text-ink-3">{new Date(l.created_at).toLocaleString(LOCALE, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
-                  <span>{l.message}</span>
+                  <span>{td(l.message)}</span>
                 </div>
               ))}
             </div>
@@ -411,13 +411,13 @@ function ProjectDetail({ project }: { project: Project }) {
                 <Input type="date" value={project.deadline ?? ""} onChange={(e) => save({ deadline: e.target.value || null })} />
               </Field>
               <Field label={tr("Estimated total time")}>
-                <DurationInput value={project.estimated_seconds} onChange={(v) => save({ estimated_seconds: v })} placeholder="e.g. 100h" />
+                <DurationInput value={project.estimated_seconds} onChange={(v) => save({ estimated_seconds: v })} placeholder={eg("100h")} />
               </Field>
               <Field label={tr("Weekly time target")}>
-                <DurationInput value={project.weekly_target_seconds} onChange={(v) => save({ weekly_target_seconds: v })} placeholder="e.g. 12h" />
+                <DurationInput value={project.weekly_target_seconds} onChange={(v) => save({ weekly_target_seconds: v })} placeholder={eg("12h")} />
               </Field>
               <Field label={tr("Preferred daily time")}>
-                <DurationInput value={project.daily_target_seconds} onChange={(v) => save({ daily_target_seconds: v })} placeholder="e.g. 2h" />
+                <DurationInput value={project.daily_target_seconds} onChange={(v) => save({ daily_target_seconds: v })} placeholder={eg("2h")} />
               </Field>
               <Field label={tr("Color")}>
                 <Input type="color" value={project.color} onChange={(e) => save({ color: e.target.value })} className="!w-16 !p-1" />

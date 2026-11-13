@@ -1,5 +1,5 @@
-import { tr } from "@/i18n";
-import { addDays, addMonths, daysInMonth, diffDays, startOfMonth, startOfWeek, weekdayOf, type DateStr } from "./dates";
+import { lang, tn } from "@/i18n";
+import { addDays, addMonths, daysInMonth, diffDays, startOfMonth, startOfWeek, weekdayOf, type DateStr, weekdayName } from "./dates";
 
 export interface RecurrenceRule {
   freq: "daily" | "weekly" | "monthly";
@@ -80,23 +80,35 @@ export function occurrencesBetween(rule: RecurrenceRule, from: DateStr, to: Date
   return out;
 }
 
-const WD = [tr("Sun"), tr("Mon"), tr("Tue"), tr("Wed"), tr("Thu"), tr("Fri"), tr("Sat")];
+const WD = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** "كل يومين", "كل 3 أسابيع" — Arabic counts the unit differently for 1, 2, 3–10 and 11+. */
+function arEvery(n: number, unit: "day" | "week" | "month"): string {
+  const f = { day: ["يوم", "يومين", "أيام", "يوماً"], week: ["أسبوع", "أسبوعين", "أسابيع", "أسبوعاً"], month: ["شهر", "شهرين", "أشهر", "شهراً"] }[unit];
+  if (n === 1) return `كل ${f[0]}`;
+  if (n === 2) return `كل ${f[1]}`;
+  return `كل ${n} ${n <= 10 ? f[2] : f[3]}`;
+}
 
 export function describeRule(rule: RecurrenceRule): string {
   const n = rule.interval;
+  const ar = lang === "ar";
   let s: string;
-  if (rule.freq === "daily") s = n === 1 ? "Every day" : `Every ${n} days`;
+  if (rule.freq === "daily") s = ar ? arEvery(n, "day") : n === 1 ? "Every day" : `Every ${n} days`;
   else if (rule.freq === "weekly") {
     const days = rule.weekdays.length ? rule.weekdays : [weekdayOf(rule.start_date)];
     const sorted = days.slice().sort((a, b) => a - b);
     const isWeekdays = sorted.join() === "1,2,3,4,5";
-    const names = isWeekdays ? "weekdays" : sorted.map((d) => WD[d]).join(", ");
-    s = n === 1 ? (isWeekdays ? "Every weekday" : `Weekly on ${names}`) : `Every ${n} weeks on ${names}`;
+    if (ar) s = `${arEvery(n, "week")} ${isWeekdays ? "من الاثنين إلى الجمعة" : `أيام ${sorted.map((d) => weekdayName(d)).join("، ")}`}`;
+    else {
+      const names = isWeekdays ? "weekdays" : sorted.map((d) => WD[d]).join(", ");
+      s = n === 1 ? (isWeekdays ? "Every weekday" : `Weekly on ${names}`) : `Every ${n} weeks on ${names}`;
+    }
   } else {
     const days = rule.monthdays.length ? rule.monthdays : [Number(rule.start_date.slice(8, 10))];
-    s = `${n === 1 ? "Monthly" : `Every ${n} months`} on day ${days.join(", ")}`;
+    s = ar ? `${arEvery(n, "month")} يوم ${days.join("، ")}` : `${n === 1 ? "Monthly" : `Every ${n} months`} on day ${days.join(", ")}`;
   }
-  if (rule.end_date) s += ` until ${rule.end_date}`;
-  if (rule.count != null) s += `, ${rule.count} times`;
+  if (rule.end_date) s += ar ? ` حتى ${rule.end_date}` : ` until ${rule.end_date}`;
+  if (rule.count != null) s += ar ? `، ${tn(rule.count, "time")}` : `, ${rule.count} times`;
   return s;
 }

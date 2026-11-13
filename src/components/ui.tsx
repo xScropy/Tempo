@@ -1,4 +1,4 @@
-import { tr } from "@/i18n";
+import { eg, tr } from "@/i18n";
 import * as Dlg from "@radix-ui/react-dialog";
 import * as Dd from "@radix-ui/react-dropdown-menu";
 import * as Cm from "@radix-ui/react-context-menu";
@@ -126,7 +126,7 @@ export function CommitInput({ value, onCommit, className, multiline, ...rest }: 
 }
 
 /** Duration field: accepts "1h 30m", "90m", "1.5h", "1:30" or plain minutes. */
-export function DurationInput({ value, onChange, placeholder = "e.g. 1h 30m", ...rest }: { value: number | null; onChange: (seconds: number | null) => void; placeholder?: string; "aria-label"?: string; className?: string }) {
+export function DurationInput({ value, onChange, placeholder = eg("1h 30m"), ...rest }: { value: number | null; onChange: (seconds: number | null) => void; placeholder?: string; "aria-label"?: string; className?: string }) {
   const [draft, setDraft] = useState(value ? fmtDuration(value) : "");
   const [bad, setBad] = useState(false);
   useEffect(() => setDraft(value ? fmtDuration(value) : ""), [value]);

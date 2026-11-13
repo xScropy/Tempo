@@ -412,7 +412,7 @@ export function CalendarPage() {
     return blocks.filter((b) => b.start < s + 86_400_000 && b.end > s);
   };
   const cd = fromDateStr(cursor);
-  const title = view === "month" ? `${monthName(cd.getMonth())} ${cd.getFullYear()}` : view === "day" ? fmtDate(cursor, today) : view === "agenda" ? `From ${fmtDate(cursor, today)}` : `${fmtDate(days[0]!, "")} – ${fmtDate(days[6]!, "")}`;
+  const title = view === "month" ? `${monthName(cd.getMonth())} ${cd.getFullYear()}` : view === "day" ? fmtDate(cursor, today) : view === "agenda" ? tr("From {0}", fmtDate(cursor, today)) : `${fmtDate(days[0]!, "")} – ${fmtDate(days[6]!, "")}`;
 
   return (
     <div className="flex h-full flex-col">
@@ -443,7 +443,9 @@ export function CalendarPage() {
         {(view === "day" || view === "week") && <PlanningPanel weekStartDate={startOfWeek(cursor, weekStart)} />}
         {(view === "day" || view === "week") && (
           <div className="flex min-w-0 flex-1 flex-col">
-            <div className="flex shrink-0 border-b border-line pe-[10px]">
+            <div ref={scroller} className="min-h-0 flex-1 overflow-y-scroll">
+              <div className="sticky top-0 z-20 bg-bg">
+            <div className="flex border-b border-line">
               <div className="w-12 shrink-0" />
               {days.map((d) => {
                 const dt = fromDateStr(d);
@@ -454,13 +456,13 @@ export function CalendarPage() {
                 );
               })}
             </div>
-            <div className="flex shrink-0 border-b border-line pe-[10px]">
+            <div className="flex border-b border-line">
               <div className="w-12 shrink-0 px-1 pt-1 text-end text-2xs text-ink-3">{tr("Due")}</div>
               {days.map((d) => (
                 <AllDayCell key={d} date={d} items={dayItems(d)} />
               ))}
             </div>
-            <div ref={scroller} className="min-h-0 flex-1 overflow-y-scroll">
+              </div>
               <div className="flex">
                 <div className="relative w-12 shrink-0" style={{ height: 24 * HOUR }}>
                   {Array.from({ length: 23 }, (_, i) => (

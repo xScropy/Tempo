@@ -276,7 +276,7 @@ export function EntryDialog({ entry, onClose }: { entry?: TimeEntry; onClose: ()
           <Input type="time" value={f.start} onChange={(e) => setF({ ...f, start: e.target.value })} />
         </Field>
         <Field label={tr("Duration")} hint={!f.seconds ? undefined : inFuture ? tr("Ends {0} — that is in the future. Move the start earlier.", timeOf(ended)) : tr("Ends {0}", timeOf(ended))}>
-          <DurationInput value={f.seconds} onChange={(v) => setF({ ...f, seconds: v })} placeholder="45m" />
+          <DurationInput value={f.seconds} onChange={(v) => setF({ ...f, seconds: v })} placeholder={fmtDuration(2700)} />
         </Field>
         <Field group label={tr("Task")} className="col-span-3">
           <TaskPicker value={f.taskId} onChange={(id) => setF({ ...f, taskId: id })} placeholder={tr("No task")} />
@@ -388,11 +388,11 @@ function History() {
           {list.map((e) => {
             const session = e.session_id ? sessionMap.get(e.session_id) : undefined;
             const task = e.task_id ? taskMap.get(e.task_id) : undefined;
-            const label = task?.title ?? (e.description || session?.objective || targets.find((t) => t.id === e.target_id)?.name || "Untitled focus");
+            const label = task?.title ?? (e.description || session?.objective || targets.find((t) => t.id === e.target_id)?.name || tr("Untitled focus"));
             return (
               <div key={e.id} className="group flex items-center gap-3 border-b border-line px-3 py-1.5 text-sm last:border-0">
-                <span className="tabular w-[92px] shrink-0 text-ink-2">{timeOf(e.start)} – {timeOf(e.end)}</span>
-                <span className="tabular w-14 shrink-0 font-medium">{fmtDuration((e.end - e.start) / 1000)}</span>
+                <span className="tabular w-[104px] shrink-0 whitespace-nowrap text-ink-2">{timeOf(e.start)} – {timeOf(e.end)}</span>
+                <span className="tabular w-[72px] shrink-0 whitespace-nowrap font-medium">{fmtDuration((e.end - e.start) / 1000)}</span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate">{label}</span>
                   {(session?.notes || (task && e.description)) && <span className="block truncate text-xs text-ink-2">{session?.notes || e.description}</span>}

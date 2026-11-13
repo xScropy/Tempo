@@ -33,7 +33,7 @@ function useFilterContext(): FilterContext {
   }, [today, taskTags, entries, projects]);
 }
 
-function InlineAdd({ defaults, placeholder = "Add a task and press Enter" }: { defaults: Parameters<typeof createTask>[0] extends infer T ? Partial<T> : never; placeholder?: string }) {
+function InlineAdd({ defaults, placeholder = tr("Add a task and press Enter") }: { defaults: Parameters<typeof createTask>[0] extends infer T ? Partial<T> : never; placeholder?: string }) {
   const [v, setV] = useState("");
   return (
     <div className="flex items-center gap-2.5 border-b border-line px-3">

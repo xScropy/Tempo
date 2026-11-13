@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.0 — 2026-11-13
+
+Added
+- **Arabic.** Settings → Appearance → Language. The whole interface switches to Arabic and to a right-to-left layout: sidebar on the right, panels and calendar mirrored, directional arrows flipped, charts read right to left. Text is set in IBM Plex Sans Arabic (bundled, works offline) at a slightly larger size and leading.
+  - Written as Arabic rather than translated word for word, with correct counted forms (مهمة واحدة، مهمتان، 3 مهام، 11 مهمة), Arabic day and month names, and durations as «1 س 30 د».
+  - Arabic input is understood: quick add reads «مذاكرة القانون لمدة ساعتين بكرة الساعة 9 !عالية #دراسة», and duration fields accept «ساعة ونص», «45 دقيقة», «ساعتين».
+  - On first run Tempo follows the system language; changing it restarts the window.
+- **Colour themes.** Settings → Appearance → Colour: teal, green, blue, purple, pink, deep pink, orange, brown, graphite. Each is tuned separately for light and dark and checked for readable contrast.
+
+Fixed
+- Calendar day headers now always line up with the grid columns.
+- Time log and time-by-category columns no longer wrap long durations.
+
 ## 0.3.0 — 2026-11-13
 
 Added

@@ -374,3 +374,21 @@ describe("levels, tokens and quests", () => {
     expect(achievementsFor(t).find((a) => a.id === "focus-10")!.unlocked).toBe(false);
   });
 });
+
+describe("Arabic input", () => {
+  it("quick add understands everyday Arabic", () => {
+    const q = parseQuickAdd("مذاكرة القانون الدولي الإنساني لمدة ساعتين بكرة", "2026-03-04");
+    expect(q).toMatchObject({ title: "مذاكرة القانون الدولي الإنساني", estimated_seconds: 7200, due_date: "2026-03-05" });
+    const m = parseQuickAdd("اجتماع المشروع يوم الجمعة الساعة 1 م 45 دقيقة !عالية #شغل", "2026-03-04");
+    expect(m).toMatchObject({ title: "اجتماع المشروع", due_date: "2026-03-06", time: "13:00", estimated_seconds: 2700, priority: 2, tags: ["شغل"] });
+    expect(parseQuickAdd("شراء لبن", "2026-03-04")).toMatchObject({ title: "شراء لبن", due_date: null, estimated_seconds: null });
+  });
+  it("durations can be typed in Arabic", () => {
+    expect(parseDuration("ساعتين")).toBe(7200);
+    expect(parseDuration("ساعة ونص")).toBe(5400);
+    expect(parseDuration("45 دقيقة")).toBe(2700);
+    expect(parseDuration("1 س 30 د")).toBe(5400);
+    expect(parseDuration("نص ساعة")).toBe(1800);
+    expect(parseDuration("كلام")).toBeNull();
+  });
+});

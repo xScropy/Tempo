@@ -20,7 +20,7 @@ const BASE = process.env.TEMPO_URL || 'http://localhost:4173';
 
   await step('drag task onto calendar, then conflict on second drop', async () => {
     await nav('Calendar');
-    const col = page.locator('div[style*="height: 1152px"].relative.border-l').nth(3);
+    const col = page.locator('div[style*="height: 1152px"].relative.border-s').nth(3);
     await page.getByRole('complementary').getByText('Legal Research').dragTo(col, { targetPosition: { x: 40, y: 10 * 48 + 4 } });
     await page.getByTitle(/Legal Research\n10:00/).waitFor();
     await page.getByRole('complementary').getByText('English practice').dragTo(col, { targetPosition: { x: 40, y: 10 * 48 + 14 } });

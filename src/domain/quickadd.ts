@@ -60,7 +60,42 @@ export function parseQuickAdd(input: string, today: DateStr): QuickAdd {
   }
   if (out.time && !out.due_date) out.due_date = today;
 
-  out.title = text.replace(/\s+/g, " ").trim().replace(/[\s,.;:-]+$/, "");
+  // Arabic, as people actually type it: "مذاكرة القانون لمدة ساعتين بكرة الساعة 9 !عالية #دراسة"
+  if (/[\u0600-\u06ff]/.test(text)) {
+    text = text.replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+    if (out.priority == null) take(/\s!(حرجة|عالية|متوسطة|منخفضة)(?=\s)/, (m) => void (out.priority = { حرجة: 1, عالية: 2, متوسطة: 3, منخفضة: 4 }[m[1]!] ?? null));
+    if (out.estimated_seconds == null) {
+      take(/\s(?:لمدة\s+)?(ساعتين|ساعتان)(?=\s)/, () => void (out.estimated_seconds = 7200));
+      take(/\s(?:لمدة\s+)?(?:نص|نصف)\s+ساع[ةه](?=\s)/, () => void (out.estimated_seconds ??= 1800));
+      take(/\s(?:لمدة\s+)?ربع\s+ساع[ةه](?=\s)/, () => void (out.estimated_seconds ??= 900));
+      take(/\s(?:لمدة\s+)?(\d+(?:\.\d+)?)\s*(ساعات|ساعة|ساعه|دقائق|دقايق|دقيقة|دقيقه)(?=\s)/, (m) => void (out.estimated_seconds ??= Math.round(Number(m[1]) * (m[2]!.startsWith("س") ? 3600 : 60))));
+      take(/\sلمدة\s+ساع[ةه](?=\s)/, () => void (out.estimated_seconds ??= 3600));
+    }
+    if (!out.time) {
+      take(/\sالساع[ةه]\s+(\d{1,2})(?::(\d{2}))?\s*(ص|م|صباحا|صباحاً|مساء|مساءً)?(?=\s)/, (m) => {
+        let h = Number(m[1]);
+        const min = Number(m[2] ?? 0);
+        if (m[3]?.startsWith("م") && h < 12) h += 12;
+        if (m[3]?.startsWith("ص") && h === 12) h = 0;
+        if (h > 23 || min > 59) return false;
+        out.time = `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+      });
+    }
+    if (!out.due_date) {
+      take(/\s(اليوم|النهارده|النهاردة|الليلة)(?=\s)/, () => void (out.due_date = today));
+      take(/\s(بعد بكرة|بعد بكره|بعد غد)(?=\s)/, () => void (out.due_date ??= addDays(today, 2)));
+      take(/\s(بكرة|بكره|غدا|غداً)(?=\s)/, () => void (out.due_date ??= addDays(today, 1)));
+      const AR_DAYS = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+      take(/\s(?:يوم\s+)?(الأحد|الاحد|الاثنين|الإثنين|الثلاثاء|الأربعاء|الاربعاء|الخميس|الجمعة|السبت)(?=\s)/, (m) => {
+        const name = m[1]!.replace("الاحد", "الأحد").replace("الإثنين", "الاثنين").replace("الاربعاء", "الأربعاء");
+        const ahead = (AR_DAYS.indexOf(name) - weekdayOf(today) + 7) % 7 || 7;
+        out.due_date ??= addDays(today, ahead);
+      });
+    }
+    if (out.time && !out.due_date) out.due_date = today;
+  }
+
+  out.title = text.replace(/\s+/g, " ").trim().replace(/[\s,.;:،-]+$/, "");
   if (!out.title) out.title = input.trim();
   return out;
 }

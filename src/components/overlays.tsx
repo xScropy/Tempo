@@ -1,4 +1,4 @@
-import { LOCALE, hash, tr } from "@/i18n";
+import { LOCALE, eg, hash, tr } from "@/i18n";
 import { CalendarDays, CheckSquare, Clock, FileText, Folder, Hash, Search, Star, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { atTime, fmtClock, fmtDate, fmtDuration, timeOf, todayStr } from "@/domain/dates";
@@ -206,10 +206,10 @@ export function ProjectDialog() {
           <Input type="date" value={f.deadline} onChange={(e) => setF({ ...f, deadline: e.target.value })} />
         </Field>
         <Field label={tr("Estimated total time")}>
-          <DurationInput value={f.estimated} onChange={(v) => setF({ ...f, estimated: v })} placeholder="e.g. 100h" />
+          <DurationInput value={f.estimated} onChange={(v) => setF({ ...f, estimated: v })} placeholder={eg("100h")} />
         </Field>
         <Field label={tr("Weekly time target")}>
-          <DurationInput value={f.weekly} onChange={(v) => setF({ ...f, weekly: v })} placeholder="e.g. 12h" />
+          <DurationInput value={f.weekly} onChange={(v) => setF({ ...f, weekly: v })} placeholder={eg("12h")} />
         </Field>
         <Field group label={tr("Color")} className="col-span-2">
           <div className="flex gap-1.5">

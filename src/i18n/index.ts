@@ -43,6 +43,7 @@ const fill = (template: string, args: Array<string | number>) => template.replac
 
 /** Strings seen in Arabic mode that have no translation yet (development aid). */
 export const missing = new Set<string>();
+if (typeof window !== "undefined") (window as unknown as { __tempoMissing: Set<string> }).__tempoMissing = missing;
 
 export function tr(text: string, ...args: Array<string | number>): string {
   if (lang === "en") return args.length ? fill(text, args) : text;
@@ -92,3 +93,6 @@ export function td(text: string): string {
 /** "@name" kept intact inside right-to-left text (isolated, so the @ does not jump to the other side). */
 export const at = (username: string) => `\u2066@${username}\u2069`;
 export const hash = (name: string | number) => `\u2066#${name}\u2069`;
+
+/** Example placeholder for a duration field: "e.g. 1h 30m" / "مثال: 1 س 30 د". */
+export const eg = (sample: string) => (lang === "ar" ? `مثال: ${sample.replace(/(\d)h/g, "$1 س").replace(/(\d)m/g, "$1 د")}` : `e.g. ${sample}`);
