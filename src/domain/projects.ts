@@ -1,3 +1,4 @@
+import { tn, tr } from "@/i18n";
 import { addDays, diffDays, type DateStr } from "./dates";
 
 export type ProgressMode = "tasks" | "weighted" | "milestones";
@@ -80,7 +81,7 @@ export interface Health {
 }
 
 export function projectHealth(i: HealthInput): Health {
-  if (i.status === "completed") return { status: "done", reasons: ["Project completed"] };
+  if (i.status === "completed") return { status: "done", reasons: [tr("Project completed")] };
   const reasons: string[] = [];
   let level = 0; // 0 on track, 1 at risk, 2 behind
   const bump = (l: number, r: string) => {
@@ -91,27 +92,27 @@ export function projectHealth(i: HealthInput): Health {
 
   if (i.deadline) {
     const left = diffDays(i.today, i.deadline);
-    if (left < 0 && progress < 1) bump(2, `Deadline passed ${-left} day${left === -1 ? "" : "s"} ago`);
+    if (left < 0 && progress < 1) bump(2, tr("Deadline passed {0} ago", tn(-left, "day")));
     else if (i.start_date && i.start_date < i.deadline) {
       const span = diffDays(i.start_date, i.deadline);
       const expected = Math.min(1, Math.max(0, diffDays(i.start_date, i.today) / span));
       const lag = expected - progress;
-      if (lag > 0.25) bump(2, `${Math.round(progress * 100)}% done, ${Math.round(expected * 100)}% of the schedule elapsed`);
-      else if (lag > 0.1) bump(1, `Slightly behind schedule (${Math.round(progress * 100)}% vs ${Math.round(expected * 100)}%)`);
-    } else if (left <= 3 && progress < 0.8) bump(1, `Due in ${left} day${left === 1 ? "" : "s"} at ${Math.round(progress * 100)}%`);
+      if (lag > 0.25) bump(2, tr("{0}% done, {1}% of the schedule elapsed", Math.round(progress * 100), Math.round(expected * 100)));
+      else if (lag > 0.1) bump(1, tr("Slightly behind schedule ({0}% vs {1}%)", Math.round(progress * 100), Math.round(expected * 100)));
+    } else if (left <= 3 && progress < 0.8) bump(1, tr("Due in {0} at {1}%", tn(left, "day"), Math.round(progress * 100)));
   }
-  if (i.overdueTasks > 0) bump(i.overdueTasks >= 3 ? 2 : 1, `${i.overdueTasks} overdue task${i.overdueTasks === 1 ? "" : "s"}`);
+  if (i.overdueTasks > 0) bump(i.overdueTasks >= 3 ? 2 : 1, tn(i.overdueTasks, "overdue task"));
   if (i.estimatedSeconds && i.estimatedSeconds > 0 && progress < 1) {
     const used = i.actualSeconds / i.estimatedSeconds;
-    if (used > 1) bump(1, `Time budget exceeded (${Math.round(used * 100)}% used)`);
-    else if (used - progress > 0.3) bump(1, `${Math.round(used * 100)}% of the time budget used for ${Math.round(progress * 100)}% progress`);
+    if (used > 1) bump(1, tr("Time budget exceeded ({0}% used)", Math.round(used * 100)));
+    else if (used - progress > 0.3) bump(1, tr("{0}% of the time budget used for {1}% progress", Math.round(used * 100), Math.round(progress * 100)));
   }
   if (i.weeklyTargetSeconds && i.weeklyTargetSeconds > 0 && i.weekDaysElapsed >= 3) {
     const expected = (i.weeklyTargetSeconds * i.weekDaysElapsed) / 7;
-    if (i.weekActualSeconds < expected * 0.5) bump(1, "Well under this week's time target");
+    if (i.weekActualSeconds < expected * 0.5) bump(1, tr("Well under this week's time target"));
   }
-  if (level === 0 && i.progress == null && !i.deadline) return { status: "no_data", reasons: ["Add tasks or a deadline to track health"] };
-  return { status: level === 2 ? "behind" : level === 1 ? "at_risk" : "on_track", reasons: reasons.length ? reasons : ["No issues detected"] };
+  if (level === 0 && i.progress == null && !i.deadline) return { status: "no_data", reasons: [tr("Add tasks or a deadline to track health")] };
+  return { status: level === 2 ? "behind" : level === 1 ? "at_risk" : "on_track", reasons: reasons.length ? reasons : [tr("No issues detected")] };
 }
 
 /** All descendant project ids including `rootId` itself. */

@@ -1,0 +1,140 @@
+/**
+ * Arabic. Keys are the English source strings (see index.ts).
+ * The bulk lives in ar.json; this file adds counted nouns, the sentences the
+ * social server composes, and strings built inside the domain logic.
+ */
+import main from "./ar.json";
+
+const extra: Record<string, string> = {
+  // colour themes
+  Teal: "فيروزي", Green: "أخضر", Blue: "أزرق", Purple: "بنفسجي", Pink: "وردي", "Deep pink": "وردي غامق", Orange: "برتقالي", Brown: "بنّي", Graphite: "رمادي داكن",
+  // project health
+  "Project completed": "اكتمل المشروع",
+  "Deadline passed {0} ago": "فات الموعد النهائي منذ {0}",
+  "{0}% done, {1}% of the schedule elapsed": "أُنجز {0}% ومضى {1}% من المدة",
+  "Slightly behind schedule ({0}% vs {1}%)": "متأخر قليلاً عن الجدول ({0}% مقابل {1}%)",
+  "Time budget exceeded ({0}% used)": "تجاوزت ميزانية الوقت (استُخدم {0}%)",
+  "{0}% of the time budget used for {1}% progress": "استُخدم {0}% من ميزانية الوقت مقابل {1}% من التقدم",
+  "Well under this week's time target": "أقل كثيراً من هدف هذا الأسبوع",
+  "Add tasks or a deadline to track health": "أضف مهام أو موعداً نهائياً لمتابعة الحالة",
+  "No issues detected": "لا مشكلات",
+  "Deadline {0}": "الموعد النهائي {0}",
+  // quests and achievements
+  "Focus for 60 minutes": "ركّز 60 دقيقة",
+  "Complete 3 tasks": "أنجز 3 مهام",
+  "Do every habit scheduled today": "أتمّ كل عادات اليوم",
+  "First step": "الخطوة الأولى", "Complete your first focus session": "أكمل أول جلسة تركيز",
+  "Ten hours in": "عشر ساعات", "Track 10 hours of focus": "سجّل 10 ساعات تركيز",
+  "Deep diver": "غوّاص", "Track 50 hours of focus": "سجّل 50 ساعة تركيز",
+  "Two hundred hours": "مئتا ساعة", "Track 200 hours of focus": "سجّل 200 ساعة تركيز",
+  "Getting things done": "منجِز", "Complete 25 tasks": "أنجز 25 مهمة",
+  Finisher: "لا يترك شيئاً", "Complete 250 tasks": "أنجز 250 مهمة",
+  "One full week": "أسبوع كامل", "Focus 7 days in a row": "ركّز 7 أيام متتالية",
+  "Unbroken month": "شهر بلا انقطاع", "Focus 30 days in a row": "ركّز 30 يوماً متتالياً",
+  "Creature of habit": "صاحب عادات", "Complete habits 50 times": "أتمّ عاداتك 50 مرة",
+  "Quest hunter": "صيّاد التحديات", "Finish 20 daily quests": "أنهِ 20 تحدياً يومياً",
+  "Quest complete": "اكتمل التحدي",
+  // reactions
+  "Keep going": "واصل",
+  // badges awarded by the server
+  "First 10 Pomodoros": "أول 10 جلسات بومودورو", "10-Hour Focus Week": "أسبوع بعشر ساعات تركيز", "50-Hour Focus Month": "شهر بخمسين ساعة تركيز",
+  "7-Day Consistency": "مواظبة 7 أيام", "Weekly Goal Achiever": "محقِّق الهدف الأسبوعي", "Challenge Winner": "فائز في منافسة",
+  // sentences the server sends
+  "sent you a friend request": "أرسل إليك طلب صداقة",
+  "accepted your friend request": "قبل طلب صداقتك",
+  "started a focus session": "بدأ جلسة تركيز",
+  "finished a focus session": "أنهى جلسة تركيز",
+  "The challenge has started. Good luck!": "بدأت المنافسة. بالتوفيق!",
+  "The challenge has started": "بدأت المنافسة",
+  "Less than a day left": "باقٍ أقل من يوم",
+  "The challenge has ended.": "انتهت المنافسة.",
+  "The challenge ended with no winner": "انتهت المنافسة بلا فائز",
+  "reached their weekly focus target": "حقق هدفه الأسبوعي للتركيز",
+  "reacted to your activity": "تفاعل مع نشاطك",
+  "says: good job!": "يقول: أحسنت!",
+  "says: you are on fire!": "يقول: أنت متألق!",
+  "says: keep going!": "يقول: واصل!",
+  "says: let's focus!": "يقول: هيا نركّز!",
+  "completed 5 hours of focus today": "أتمّ 5 ساعات تركيز اليوم",
+  // server errors
+  "That username is taken": "اسم المستخدم محجوز",
+  "This profile is not known to the server": "هذا الملف غير معروف لدى الخادم",
+  "Not signed in": "لم تسجّل الدخول",
+  "Not connected": "غير متصل",
+  "Too many requests — slow down": "طلبات كثيرة — تمهّل قليلاً",
+  "No user with that username": "لا يوجد مستخدم بهذا الاسم",
+  "That invitation code is not valid": "رمز الدعوة غير صالح",
+  "That is you": "هذا أنت",
+  "You have blocked this user. Unblock them first.": "لقد حظرت هذا المستخدم. ألغِ الحظر أولاً.",
+  "You are already friends": "أنتما صديقان بالفعل",
+  "You have already sent this person a request": "أرسلت إليه طلباً من قبل",
+  "That request is no longer pending": "هذا الطلب لم يعد قائماً",
+  "You have too many pending requests": "لديك طلبات معلّقة كثيرة",
+  "You cannot block yourself": "لا يمكنك حظر نفسك",
+  "The challenge must end after it starts": "يجب أن تنتهي المنافسة بعد بدايتها",
+  "A challenge can last at most a year": "أقصى مدة للمنافسة سنة",
+  "The challenge would already be over": "هذه المنافسة ستكون منتهية بالفعل",
+  "A “first to reach” challenge needs a target": "منافسة «أول من يبلغ الهدف» تحتاج إلى هدف",
+  "You have not been invited to this challenge": "لم تُدعَ إلى هذه المنافسة",
+  "This challenge has already ended": "هذه المنافسة انتهت",
+  "Only the creator can invite people": "الدعوة لمنشئ المنافسة فقط",
+  "Only the creator can delete a challenge": "الحذف لمنشئ المنافسة فقط",
+  "You are not in this room": "لست في هذه الغرفة",
+  "You have not been invited to this room": "لم تُدعَ إلى هذه الغرفة",
+  "That post is not available": "هذا المنشور غير متاح",
+  "You can only encourage friends": "التشجيع للأصدقاء فقط",
+  "Usernames are 3–20 characters: letters, numbers or underscore": "اسم المستخدم من 3 إلى 20 حرفاً لاتينياً أو رقماً أو _",
+  "Name the challenge": "اكتب اسم المنافسة",
+  "Name the room": "اكتب اسم الغرفة",
+  "That user no longer exists": "هذا المستخدم لم يعد موجوداً",
+  "Unknown request": "طلب غير معروف",
+  "Message too large": "الرسالة كبيرة جداً",
+  "Could not reach the relay": "تعذّر الوصول إلى الوسيط",
+  "The relay did not answer": "لم يردّ الوسيط",
+  "The relay closed the connection": "أغلق الوسيط الاتصال",
+  "The relay refused the connection": "رفض الوسيط الاتصال",
+};
+
+export const AR: Record<string, string> = { ...(main as Record<string, string>), ...extra };
+
+/** Counted nouns: one, two, 3–10 (plural), 11+ (singular). */
+const n = (one: string, two: string, few: string, many: string) => ({ one, two, few, many });
+export const AR_NOUNS = {
+  task: n("مهمة واحدة", "مهمتان", "مهام", "مهمة"),
+  "open task": n("مهمة مفتوحة واحدة", "مهمتان مفتوحتان", "مهام مفتوحة", "مهمة مفتوحة"),
+  "overdue task": n("مهمة متأخرة واحدة", "مهمتان متأخرتان", "مهام متأخرة", "مهمة متأخرة"),
+  "estimated task": n("مهمة مقدَّرة واحدة", "مهمتان مقدَّرتان", "مهام مقدَّرة", "مهمة مقدَّرة"),
+  day: n("يوم واحد", "يومان", "أيام", "يوماً"),
+  session: n("جلسة واحدة", "جلستان", "جلسات", "جلسة"),
+  "shared session": n("جلسة مشتركة واحدة", "جلستان مشتركتان", "جلسات مشتركة", "جلسة مشتركة"),
+  participant: n("مشارك واحد", "مشاركان", "مشاركين", "مشاركاً"),
+  challenge: n("منافسة واحدة", "منافستان", "منافسات", "منافسة"),
+  subproject: n("مشروع فرعي واحد", "مشروعان فرعيان", "مشاريع فرعية", "مشروعاً فرعياً"),
+  token: n("عملة واحدة", "عملتان", "عملات", "عملة"),
+  "more token": n("عملة واحدة", "عملتان", "عملات", "عملة"),
+  minute: n("دقيقة واحدة", "دقيقتين", "دقائق", "دقيقة"),
+  friend: n("صديق واحد", "صديقان", "أصدقاء", "صديقاً"),
+  entry: n("تسجيل واحد", "تسجيلان", "تسجيلات", "تسجيلاً"),
+  time: n("مرة واحدة", "مرتين", "مرات", "مرة"),
+} as const;
+
+/** Sentences composed by the social server, with their placeholders. */
+export const AR_PATTERNS: Record<string, string> = {
+  "completed a {0}-minute Pomodoro": "أكمل بومودورو مدته {0} دقيقة",
+  "completed a {0}-minute focus session": "أكمل جلسة تركيز مدتها {0} دقيقة",
+  "reached their weekly focus target of {0}": "حقق هدفه الأسبوعي للتركيز ({0})",
+  "reached the target in “{0}”": "بلغ الهدف في «{0}»",
+  "won the challenge “{0}”": "فاز في منافسة «{0}»",
+  "created the challenge “{0}”": "أنشأ منافسة «{0}»",
+  "joined the challenge “{0}”": "انضم إلى منافسة «{0}»",
+  "invited you to “{0}”": "دعاك إلى «{0}»",
+  "invited you to focus together in “{0}”": "دعاك للتركيز معه في «{0}»",
+  "{0} reached the target": "{0} بلغ الهدف",
+  "{0} just overtook you": "{0} تجاوزك للتو",
+  "{0} overtook {1}": "{0} تجاوز {1}",
+  "{0} won. See the final ranking.": "فاز {0}. شاهد الترتيب النهائي.",
+  "{0} won the challenge": "{0} فاز بالمنافسة",
+  "{0} joined the room": "{0} انضم إلى الغرفة",
+  "{0} joined": "{0} انضم",
+  "{0} left": "{0} غادر",
+};

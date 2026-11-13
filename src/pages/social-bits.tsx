@@ -1,3 +1,4 @@
+import { tn, tr } from "@/i18n";
 import { useMemo } from "react";
 import { fmtClock, fmtDuration } from "@/domain/dates";
 import { useSocial } from "@/social/client";
@@ -13,9 +14,9 @@ export function Avatar({ user, size = 28 }: { user: PublicProfile; size?: number
   );
 }
 
-const MODE: Record<string, string> = { pomodoro: "Pomodoro", deep: "Deep work", countdown: "Countdown", stopwatch: "Stopwatch", short_break: "Short break", long_break: "Long break" };
+const MODE: Record<string, string> = { pomodoro: tr("Pomodoro"), deep: tr("Deep work"), countdown: tr("Countdown"), stopwatch: tr("Stopwatch"), short_break: tr("Short break"), long_break: tr("Long break") };
 const DOT: Record<Presence["status"], string> = { focusing: "bg-ok", break: "bg-warn", online: "bg-accent", idle: "bg-ink-3", offline: "bg-line-strong" };
-export const STATUS_LABEL: Record<Presence["status"], string> = { focusing: "Focusing", break: "On break", online: "Online", idle: "Idle", offline: "Offline" };
+export const STATUS_LABEL: Record<Presence["status"], string> = { focusing: tr("Focusing"), break: tr("On break"), online: tr("Online"), idle: tr("Idle"), offline: tr("Offline") };
 
 function ago(ms: number): string {
   const m = Math.round(ms / 60_000);
@@ -52,7 +53,7 @@ export const pct = (s: PeriodStats) => (s.seconds != null && s.targetSeconds ? s
 export const hrs = (seconds: number | null) => (seconds == null ? "—" : fmtDuration(seconds));
 
 export type BoardMetric = "focus" | "sessions" | "goal" | "streak" | "consistency";
-export const METRIC_LABEL: Record<BoardMetric, string> = { focus: "Focus hours", sessions: "Completed sessions", goal: "Weekly goal completion", streak: "Current streak", consistency: "Consistency (productive days)" };
+export const METRIC_LABEL: Record<BoardMetric, string> = { focus: tr("Focus hours"), sessions: tr("Completed sessions"), goal: tr("Weekly goal completion"), streak: tr("Current streak"), consistency: tr("Consistency (productive days)") };
 
 type Person = (FriendView | MeView) & { me?: boolean };
 
@@ -103,8 +104,8 @@ export function fmtMetric(metric: BoardMetric, v: number | null): string {
   if (v == null) return "not shared";
   if (metric === "focus") return fmtDuration(v);
   if (metric === "goal") return `${Math.round(v * 100)}%`;
-  if (metric === "streak") return `${v} day${v === 1 ? "" : "s"}`;
-  if (metric === "consistency") return `${v} day${v === 1 ? "" : "s"}`;
+  if (metric === "streak") return tn(v, "day");
+  if (metric === "consistency") return tn(v, "day");
   return String(v);
 }
 
@@ -117,7 +118,7 @@ export function usePeople(): Person[] {
 export function DayBars({ days, labels, highlight }: { days: number[]; labels?: string[]; highlight?: number }) {
   const max = Math.max(3600, ...days);
   return (
-    <div className="flex h-24 items-end gap-1.5" role="img" aria-label={`Focus per day: ${days.map((d) => fmtDuration(d)).join(", ")}`}>
+    <div className="flex h-24 items-end gap-1.5" role="img" aria-label={tr("Focus per day: {0}", days.map((d) => fmtDuration(d)).join(", "))}>
       {days.map((s, i) => (
         <div key={i} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1" title={`${labels?.[i] ?? `Day ${i + 1}`}: ${fmtDuration(s)}`}>
           <div className="w-full max-w-[26px] rounded-t-[3px]" style={{ height: `${Math.max(s > 0 ? 4 : 1, (s / max) * 82)}%`, background: s > 0 ? "var(--chart-1)" : "rgb(var(--line-strong))" }} />

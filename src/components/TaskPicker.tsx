@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 import { ChevronDown, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { isOpen } from "@/domain/types";
@@ -28,10 +29,10 @@ export function TaskPicker({ value, onChange, placeholder = "No task — quick f
       open={open}
       onOpenChange={(o) => (setOpen(o), setQ(""))}
       trigger={
-        <button type="button" className="flex h-8 w-full items-center gap-2 rounded border border-line-strong bg-surface px-2.5 text-left text-base hover:bg-hover/50">
+        <button type="button" className="flex h-8 w-full items-center gap-2 rounded border border-line-strong bg-surface px-2.5 text-start text-base hover:bg-hover/50">
           <span className={cx("min-w-0 flex-1 truncate", !selected && "text-ink-3")}>{selected?.title ?? placeholder}</span>
           {selected ? (
-            <span role="button" tabIndex={0} aria-label="Clear task" className="text-ink-3 hover:text-ink" onClick={(e) => (e.stopPropagation(), onChange(null))} onKeyDown={(e) => e.key === "Enter" && (e.stopPropagation(), onChange(null))}>
+            <span role="button" tabIndex={0} aria-label={tr("Clear task")} className="text-ink-3 hover:text-ink" onClick={(e) => (e.stopPropagation(), onChange(null))} onKeyDown={(e) => e.key === "Enter" && (e.stopPropagation(), onChange(null))}>
               <X size={13} />
             </span>
           ) : (
@@ -41,13 +42,13 @@ export function TaskPicker({ value, onChange, placeholder = "No task — quick f
       }
     >
       <div className="w-[340px]">
-        <Input autoFocus placeholder="Search open tasks" aria-label="Search tasks" value={q} onChange={(e) => setQ(e.target.value)} />
+        <Input autoFocus placeholder={tr("Search open tasks")} aria-label={tr("Search tasks")} value={q} onChange={(e) => setQ(e.target.value)} />
         <div className="mt-2 max-h-64 overflow-y-auto">
-          {matches.length === 0 && <div className="px-2 py-3 text-sm text-ink-2">No open tasks match.</div>}
+          {matches.length === 0 && <div className="px-2 py-3 text-sm text-ink-2">{tr("No open tasks match.")}</div>}
           {matches.map((t) => {
             const p = t.project_id ? byId(projects).get(t.project_id) : undefined;
             return (
-              <button key={t.id} type="button" className={cx("flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm hover:bg-hover", t.id === value && "bg-hover")} onClick={() => (onChange(t.id), setOpen(false))}>
+              <button key={t.id} type="button" className={cx("flex w-full items-center gap-2 rounded px-2 py-1.5 text-start text-sm hover:bg-hover", t.id === value && "bg-hover")} onClick={() => (onChange(t.id), setOpen(false))}>
                 <span className="min-w-0 flex-1 truncate">{t.title}</span>
                 {p && <span className="max-w-[120px] shrink-0 truncate text-xs text-ink-3">{p.name}</span>}
               </button>

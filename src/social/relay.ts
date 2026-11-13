@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 /**
  * Internet connectivity without anyone running a server.
  *
@@ -162,7 +163,7 @@ export class Mqtt {
   subscribe(topic: string, timeoutMs = 8000): Promise<void> {
     return new Promise((resolve, reject) => {
       const id = this.nextId++ & 0xffff || 1;
-      const timer = setTimeout(() => (this.acks.delete(id), reject(new Error("The relay did not confirm the subscription"))), timeoutMs);
+      const timer = setTimeout(() => (this.acks.delete(id), reject(new Error(tr("The relay did not confirm the subscription")))), timeoutMs);
       this.acks.set(id, () => (clearTimeout(timer), resolve()));
       this.ws.send(packet(0x82, [id >> 8, id & 0xff], str(topic), [0]));
     });
@@ -201,7 +202,7 @@ export const formatCode = (code: string) => normalizeCode(code).replace(/(.{4})(
 export function brokerOf(code: string, brokers = BROKERS): string {
   const n = normalizeCode(code);
   const url = brokers[Number(n[0]) - 1];
-  if (n.length !== 16 || !url) throw new Error("That group code is not valid. It looks like 1ABC-DEFG-HJKM-NPQR.");
+  if (n.length !== 16 || !url) throw new Error(tr("That group code is not valid. It looks like 1ABC-DEFG-HJKM-NPQR."));
   return url;
 }
 
@@ -292,7 +293,7 @@ export async function relayClient(code: string, opts: { WS?: WsCtor; brokers?: s
     const timer = setTimeout(() => {
       clearInterval(knock);
       link.close();
-      reject(new Error("The group's host is not online right now. The group works while the person who started it has Tempo open."));
+      reject(new Error(tr("The group's host is not online right now. The group works while the person who started it has Tempo open.")));
     }, opts.waitMs ?? 12_000);
     acked = () => {
       clearInterval(knock);
@@ -391,7 +392,7 @@ export async function pickBroker(WS?: WsCtor, brokers = BROKERS): Promise<number
       /* try the next one */
     }
   }
-  throw new Error("None of the public relays could be reached. Check your internet connection, or use a server address instead.");
+  throw new Error(tr("None of the public relays could be reached. Check your internet connection, or use a server address instead."));
 }
 
 /** The host's own app talks to its server directly, without going through the relay. */

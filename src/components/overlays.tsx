@@ -1,3 +1,4 @@
+import { LOCALE, hash, tr } from "@/i18n";
 import { CalendarDays, CheckSquare, Clock, FileText, Folder, Hash, Search, Star, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { atTime, fmtClock, fmtDate, fmtDuration, timeOf, todayStr } from "@/domain/dates";
@@ -15,14 +16,14 @@ import { Badge, Button, Dialog, DurationInput, Field, Input, Select, Textarea, c
 export function Toasts() {
   const toasts = useToasts((s) => s.toasts);
   return (
-    <div className="no-print pointer-events-none fixed bottom-4 right-4 z-[60] flex w-80 flex-col gap-2" role="status" aria-live="polite">
+    <div className="no-print pointer-events-none fixed bottom-4 end-4 z-[60] flex w-80 flex-col gap-2" role="status" aria-live="polite">
       {toasts.map((t) => (
         <div key={t.id} className={cx("animate-pop pointer-events-auto flex items-start gap-2 rounded-md border bg-surface px-3 py-2 shadow-pop", t.tone === "error" ? "border-danger/50" : "border-line")}>
           <div className="min-w-0 flex-1">
             <div className={cx("text-sm font-medium", t.tone === "error" && "text-danger")}>{t.title}</div>
             {t.body && <div className="mt-0.5 text-sm text-ink-2">{t.body}</div>}
           </div>
-          <button type="button" aria-label="Dismiss" className="text-ink-3 hover:text-ink" onClick={() => dismissToast(t.id)}>
+          <button type="button" aria-label={tr("Dismiss")} className="text-ink-3 hover:text-ink" onClick={() => dismissToast(t.id)}>
             <X size={13} />
           </button>
         </div>
@@ -46,9 +47,9 @@ export function ConfirmHost() {
       width={420}
       footer={
         <>
-          <Button onClick={() => close(false)}>Cancel</Button>
+          <Button onClick={() => close(false)}>{tr("Cancel")}</Button>
           <Button variant={req.danger ? "danger" : "primary"} autoFocus onClick={() => close(true)}>
-            {req.confirmLabel ?? "Confirm"}
+            {req.confirmLabel ?? tr("Confirm")}
           </Button>
         </>
       }
@@ -100,14 +101,14 @@ export function QuickAdd() {
     <Dialog
       open
       onClose={close}
-      title="New task"
+      title={tr("New task")}
       width={560}
       footer={
         <>
-          <span className="mr-auto text-xs text-ink-3">Enter to add · Ctrl+Enter to add and open</span>
-          <Button onClick={close}>Cancel</Button>
+          <span className="me-auto text-xs text-ink-3">{tr("Enter to add · Ctrl+Enter to add and open")}</span>
+          <Button onClick={close}>{tr("Cancel")}</Button>
           <Button variant="primary" disabled={!text.trim()} onClick={() => void submit(false)}>
-            Add task
+            {tr("Add task")}
           </Button>
         </>
       }
@@ -115,8 +116,8 @@ export function QuickAdd() {
       <Input
         autoFocus
         value={text}
-        aria-label="Task"
-        placeholder="Study International Humanitarian Law for 2 hours tomorrow"
+        aria-label={tr("Task")}
+        placeholder={tr("Study International Humanitarian Law for 2 hours tomorrow")}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && void submit(e.ctrlKey || e.metaKey)}
         className="!h-10 text-lg"
@@ -126,13 +127,13 @@ export function QuickAdd() {
         {parsed.estimated_seconds && <Badge tone="accent"><Clock size={10} /> {fmtDuration(parsed.estimated_seconds)}</Badge>}
         {parsed.priority && <Badge tone="accent">{PRIORITY_LABEL[parsed.priority]}</Badge>}
         {parsed.tags.map((t) => (
-          <Badge key={t} tone="accent">#{t}</Badge>
+          <Badge key={t} tone="accent">{hash(t)}</Badge>
         ))}
-        {!text && <span className="text-xs text-ink-3">Understands dates (today, tomorrow, friday), "at 9:30", durations (2h, 45m), !high and #tags.</span>}
+        {!text && <span className="text-xs text-ink-3">{tr("Understands dates (today, tomorrow, friday), \"at 9:30\", durations (2h, 45m), !high and #tags.")}</span>}
       </div>
-      <Field label="Project" className="mt-3">
+      <Field label={tr("Project")} className="mt-3">
         <Select value={projectId} onChange={(e) => setProjectId(e.target.value)}>
-          <option value="">No project (goes to Inbox unless dated)</option>
+          <option value="">{tr("No project (goes to Inbox unless dated)")}</option>
           <ProjectOptions projects={projects} />
         </Select>
       </Field>
@@ -170,50 +171,50 @@ export function ProjectDialog() {
     <Dialog
       open
       onClose={close}
-      title={f.parent_id ? "New subproject" : "New project"}
+      title={f.parent_id ? tr("New subproject") : tr("New project")}
       footer={
         <>
-          <Button onClick={close}>Cancel</Button>
+          <Button onClick={close}>{tr("Cancel")}</Button>
           <Button variant="primary" disabled={!f.name.trim()} onClick={() => void submit()}>
-            Create project
+            {tr("Create project")}
           </Button>
         </>
       }
     >
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Name" className="col-span-2">
-          <Input autoFocus value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} onKeyDown={(e) => e.key === "Enter" && f.name.trim() && void submit()} placeholder="Prepare for International Moot Court" />
+        <Field label={tr("Name")} className="col-span-2">
+          <Input autoFocus value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} onKeyDown={(e) => e.key === "Enter" && f.name.trim() && void submit()} placeholder={tr("Prepare for International Moot Court")} />
         </Field>
-        <Field label="Parent project">
+        <Field label={tr("Parent project")}>
           <Select value={f.parent_id} onChange={(e) => setF({ ...f, parent_id: e.target.value })}>
-            <option value="">None (top level)</option>
+            <option value="">{tr("None (top level)")}</option>
             <ProjectOptions projects={projects} />
           </Select>
         </Field>
-        <Field label="Category">
+        <Field label={tr("Category")}>
           <Select value={f.category_id} onChange={(e) => setF({ ...f, category_id: e.target.value })}>
-            <option value="">None</option>
+            <option value="">{tr("None")}</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </Select>
         </Field>
-        <Field label="Start date">
+        <Field label={tr("Start date")}>
           <Input type="date" value={f.start_date} onChange={(e) => setF({ ...f, start_date: e.target.value })} />
         </Field>
-        <Field label="Deadline">
+        <Field label={tr("Deadline")}>
           <Input type="date" value={f.deadline} onChange={(e) => setF({ ...f, deadline: e.target.value })} />
         </Field>
-        <Field label="Estimated total time">
+        <Field label={tr("Estimated total time")}>
           <DurationInput value={f.estimated} onChange={(v) => setF({ ...f, estimated: v })} placeholder="e.g. 100h" />
         </Field>
-        <Field label="Weekly time target">
+        <Field label={tr("Weekly time target")}>
           <DurationInput value={f.weekly} onChange={(v) => setF({ ...f, weekly: v })} placeholder="e.g. 12h" />
         </Field>
-        <Field group label="Color" className="col-span-2">
+        <Field group label={tr("Color")} className="col-span-2">
           <div className="flex gap-1.5">
             {COLORS.map((c) => (
-              <button key={c} type="button" aria-label={`Color ${c}`} aria-pressed={f.color === c} onClick={() => setF({ ...f, color: c })} className={cx("h-6 w-6 rounded", f.color === c && "ring-2 ring-ink ring-offset-2 ring-offset-surface")} style={{ background: c }} />
+              <button key={c} type="button" aria-label={tr("Color {0}", c)} aria-pressed={f.color === c} onClick={() => setF({ ...f, color: c })} className={cx("h-6 w-6 rounded", f.color === c && "ring-2 ring-ink ring-offset-2 ring-offset-surface")} style={{ background: c }} />
             ))}
           </div>
         </Field>
@@ -231,9 +232,9 @@ interface Hit {
 }
 
 const NAV: Array<{ page: Page; label: string }> = [
-  { page: "dashboard", label: "Dashboard" }, { page: "inbox", label: "Inbox" }, { page: "tasks", label: "My Tasks" }, { page: "projects", label: "Projects" },
-  { page: "calendar", label: "Calendar" }, { page: "focus", label: "Focus" }, { page: "habits", label: "Habits" }, { page: "goals", label: "Goals" },
-  { page: "analytics", label: "Analytics" }, { page: "rewards", label: "Rewards" }, { page: "journal", label: "Journal" }, { page: "friends", label: "Social" }, { page: "settings", label: "Settings" },
+  { page: "dashboard", label: tr("Dashboard") }, { page: "inbox", label: tr("Inbox") }, { page: "tasks", label: tr("My Tasks") }, { page: "projects", label: tr("Projects") },
+  { page: "calendar", label: tr("Calendar") }, { page: "focus", label: tr("Focus") }, { page: "habits", label: tr("Habits") }, { page: "goals", label: tr("Goals") },
+  { page: "analytics", label: tr("Analytics") }, { page: "rewards", label: tr("Rewards") }, { page: "journal", label: tr("Journal") }, { page: "friends", label: tr("Social") }, { page: "settings", label: tr("Settings") },
 ];
 
 /** Global search across tasks, projects, notes, sessions, journal, tags and categories. */
@@ -256,7 +257,7 @@ export function SearchPalette() {
       const i = text.toLowerCase().indexOf(needle);
       return i < 0 ? undefined : (i > 30 ? "…" : "") + text.slice(Math.max(0, i - 30), i + 60).replace(/\s+/g, " ");
     };
-    for (const n of NAV) if (!needle || n.label.toLowerCase().includes(needle)) out.push({ key: `nav-${n.page}`, icon: <Star size={14} />, title: `Go to ${n.label}`, run: () => navigate(n.page) });
+    for (const n of NAV) if (!needle || n.label.toLowerCase().includes(needle)) out.push({ key: `nav-${n.page}`, icon: <Star size={14} />, title: tr("Go to {0}", n.label), run: () => navigate(n.page) });
     if (!needle) return out;
     const projectName = (id: string | null) => s.projects.find((p) => p.id === id)?.name;
     for (const t of s.tasks) {
@@ -265,17 +266,17 @@ export function SearchPalette() {
         out.push({ key: `t-${t.id}`, icon: <CheckSquare size={14} />, title: t.title, sub: [projectName(t.project_id), t.status === "completed" ? "Completed" : null, !t.title.toLowerCase().includes(needle) ? snippet(t.notes) ?? snippet(t.description) : null].filter(Boolean).join(" · "), run: () => (navigate("tasks"), openTask(t.id)) });
       }
     }
-    for (const p of s.projects) if (has(p.name, p.description, p.notes)) out.push({ key: `p-${p.id}`, icon: <Folder size={14} />, title: p.name, sub: "Project", run: () => navigate("projects", p.id) });
+    for (const p of s.projects) if (has(p.name, p.description, p.notes)) out.push({ key: `p-${p.id}`, icon: <Folder size={14} />, title: p.name, sub: tr("Project"), run: () => navigate("projects", p.id) });
     for (const x of s.sessions) {
       if (out.length > 90) break;
-      if (has(x.notes, x.objective)) out.push({ key: `s-${x.id}`, icon: <Clock size={14} />, title: snippet(x.notes) ?? x.objective, sub: `Session · ${new Date(x.started_at).toLocaleDateString()} · ${fmtDuration(sessionSeconds(x.id, s.entries))}`, run: () => navigate("focus", "history") });
+      if (has(x.notes, x.objective)) out.push({ key: `s-${x.id}`, icon: <Clock size={14} />, title: snippet(x.notes) ?? x.objective, sub: tr("Session · {0} · {1}", new Date(x.started_at).toLocaleDateString(LOCALE), fmtDuration(sessionSeconds(x.id, s.entries))), run: () => navigate("focus", "history") });
     }
     for (const j of Object.values(s.journal)) {
       const text = [j.accomplishments, j.went_well, j.went_wrong, j.improve, j.tomorrow].join("\n");
-      if (text.toLowerCase().includes(needle)) out.push({ key: `j-${j.date}`, icon: <FileText size={14} />, title: snippet(text) ?? j.date, sub: `Journal · ${j.date}`, run: () => navigate("journal", j.date) });
+      if (text.toLowerCase().includes(needle)) out.push({ key: `j-${j.date}`, icon: <FileText size={14} />, title: snippet(text) ?? j.date, sub: tr("Journal · {0}", j.date), run: () => navigate("journal", j.date) });
     }
-    for (const t of s.tags) if (has(t.name)) out.push({ key: `g-${t.id}`, icon: <Hash size={14} />, title: `#${t.name}`, sub: "Tag — show tasks", run: () => navigate("tasks", `tag:${t.id}`) });
-    for (const c of s.categories) if (has(c.name)) out.push({ key: `c-${c.id}`, icon: <Hash size={14} />, title: c.name, sub: "Category — show tasks", run: () => navigate("tasks", `category:${c.id}`) });
+    for (const t of s.tags) if (has(t.name)) out.push({ key: `g-${t.id}`, icon: <Hash size={14} />, title: `#${t.name}`, sub: tr("Tag — show tasks"), run: () => navigate("tasks", `tag:${t.id}`) });
+    for (const c of s.categories) if (has(c.name)) out.push({ key: `c-${c.id}`, icon: <Hash size={14} />, title: c.name, sub: tr("Category — show tasks"), run: () => navigate("tasks", `category:${c.id}`) });
     return out;
   }, [q, open]);
 
@@ -291,14 +292,14 @@ export function SearchPalette() {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/35" onMouseDown={close}>
-      <div className="animate-pop mx-auto mt-[12vh] w-[min(94vw,600px)] overflow-hidden rounded-lg border border-line bg-surface shadow-pop" onMouseDown={(e) => e.stopPropagation()} role="dialog" aria-label="Search">
+      <div className="animate-pop mx-auto mt-[12vh] w-[min(94vw,600px)] overflow-hidden rounded-lg border border-line bg-surface shadow-pop" onMouseDown={(e) => e.stopPropagation()} role="dialog" aria-label={tr("Search")}>
         <div className="flex items-center gap-2 border-b border-line px-3">
           <Search size={15} className="text-ink-3" />
           <input
             autoFocus
             value={q}
-            placeholder="Search tasks, projects, notes, sessions…"
-            aria-label="Search"
+            placeholder={tr("Search tasks, projects, notes, sessions…")}
+            aria-label={tr("Search")}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Escape") close();
@@ -310,9 +311,9 @@ export function SearchPalette() {
           />
         </div>
         <div ref={listRef} className="max-h-[50vh] overflow-y-auto p-1">
-          {hits.length === 0 && <div className="px-3 py-6 text-center text-sm text-ink-2">Nothing matches "{q}"</div>}
+          {hits.length === 0 && <div className="px-3 py-6 text-center text-sm text-ink-2">{tr("Nothing matches \"")}{q}"</div>}
           {hits.map((h, i) => (
-            <button key={h.key} type="button" data-i={i} onMouseEnter={() => setSel(i)} onClick={() => run(h)} className={cx("flex w-full items-center gap-2.5 rounded px-2.5 py-1.5 text-left", i === sel && "bg-hover")}>
+            <button key={h.key} type="button" data-i={i} onMouseEnter={() => setSel(i)} onClick={() => run(h)} className={cx("flex w-full items-center gap-2.5 rounded px-2.5 py-1.5 text-start", i === sel && "bg-hover")}>
               <span className="text-ink-3">{h.icon}</span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate">{h.title}</span>
@@ -332,15 +333,15 @@ export function GapDialog() {
   const timer = useTimer((s) => s.timer);
   if (!gap || !timer) return null;
   return (
-    <Dialog open onClose={() => undefined} title="Were you still working?" width={460}>
+    <Dialog open onClose={() => undefined} title={tr("Were you still working?")} width={460}>
       <p className="text-base text-ink-2">
-        A focus session was running, but Tempo was closed or your computer was asleep for <strong className="text-ink">{fmtDuration(gap.ms / 1000)}</strong> ({timeOf(gap.from)} – {timeOf(gap.to)}).
+        {tr("A focus session was running, but Tempo was closed or your computer was asleep for")}{" "}<strong className="text-ink">{fmtDuration(gap.ms / 1000)}</strong> ({timeOf(gap.from)} – {timeOf(gap.to)}).
       </p>
-      <p className="mt-2 text-base text-ink-2">Should that time count as focused work?</p>
+      <p className="mt-2 text-base text-ink-2">{tr("Should that time count as focused work?")}</p>
       <div className="mt-4 flex justify-end gap-2">
-        <Button onClick={() => void attempt(() => resolveGap(false))}>No — pause at {timeOf(gap.from)}</Button>
+        <Button onClick={() => void attempt(() => resolveGap(false))}>{tr("No — pause at")}{" "}{timeOf(gap.from)}</Button>
         <Button variant="primary" onClick={() => void attempt(() => resolveGap(true))}>
-          Yes, keep {fmtClock(gap.ms / 1000)}
+          {tr("Yes, keep")}{" "}{fmtClock(gap.ms / 1000)}
         </Button>
       </div>
     </Dialog>
@@ -366,25 +367,25 @@ export function SessionReview() {
     <Dialog
       open
       onClose={close}
-      title={session.status === "completed" ? "Session complete" : "Session stopped"}
+      title={session.status === "completed" ? tr("Session complete") : tr("Session stopped")}
       width={460}
       footer={
         <>
-          <Button onClick={close}>Skip</Button>
+          <Button onClick={close}>{tr("Skip")}</Button>
           <Button variant="primary" onClick={() => void save()}>
-            Save
+            {tr("Save")}
           </Button>
         </>
       }
     >
       <div className="mb-3 text-sm text-ink-2">
-        <span className="tabular font-medium text-ink">{fmtDuration(sessionSeconds(id, entries))}</span> recorded{task ? ` on "${task.title}"` : ""}.
+        <span className="tabular font-medium text-ink">{fmtDuration(sessionSeconds(id, entries))}</span>{" "}{tr("recorded")}{task ? tr(" on \"{0}\"", task.title) : ""}.
       </div>
-      <Field label="What did you accomplish during this session?">
+      <Field label={tr("What did you accomplish during this session?")}>
         <Textarea autoFocus value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} onKeyDown={(e) => e.key === "Enter" && (e.ctrlKey || e.metaKey) && void save()} />
       </Field>
       <div className="mt-3">
-        <div className="mb-1 text-xs font-medium text-ink-2">How focused were you? (optional)</div>
+        <div className="mb-1 text-xs font-medium text-ink-2">{tr("How focused were you? (optional)")}</div>
         <div className="flex gap-1">
           {[1, 2, 3, 4, 5].map((n) => (
             <button key={n} type="button" aria-pressed={rating === n} onClick={() => setRating(rating === n ? null : n)} className={cx("h-8 w-9 rounded border text-sm", rating === n ? "border-accent bg-accent/10 font-medium text-accent" : "border-line-strong text-ink-2 hover:bg-hover")}>

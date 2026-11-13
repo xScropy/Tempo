@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 import { create } from "zustand";
 import { db, isTauri } from "@/db/driver";
 import { elapsedMs, isRunning } from "@/domain/timer";
@@ -47,11 +48,11 @@ if (typeof window !== "undefined") {
 
 function rawCall<T>(t: string, d: unknown = {}): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    if (!link) return reject(new Error("Not connected"));
+    if (!link) return reject(new Error(tr("Not connected")));
     const id = ++seq;
     pending.set(id, { resolve: resolve as (v: unknown) => void, reject });
     link.send(JSON.stringify({ id, t, d }));
-    setTimeout(() => pending.delete(id) && reject(new Error("The server did not answer in time")), 12_000);
+    setTimeout(() => pending.delete(id) && reject(new Error(tr("The server did not answer in time"))), 12_000);
   });
 }
 
@@ -161,11 +162,11 @@ function wsLink(url: string): Promise<Link> {
     try {
       sock = new WebSocket(url);
     } catch {
-      return reject(new Error("That server address is not valid. It should look like ws://192.168.1.20:47800 or wss://example.com"));
+      return reject(new Error(tr("That server address is not valid. It should look like ws://192.168.1.20:47800 or wss://example.com")));
     }
     const l: Link = { onmessage: null, onclose: null, send: (text) => sock.readyState === WebSocket.OPEN && sock.send(text), close: () => sock.close() };
     sock.onopen = () => ((settled = true), resolve(l));
-    sock.onerror = () => !settled && ((settled = true), reject(new Error("Could not reach the social server at that address")));
+    sock.onerror = () => !settled && ((settled = true), reject(new Error(tr("Could not reach the social server at that address"))));
     sock.onmessage = (ev) => l.onmessage?.(String(ev.data));
     sock.onclose = () => l.onclose?.();
   });
@@ -194,7 +195,7 @@ async function open(url: string, hosting: boolean): Promise<void> {
       if ("re" in m) {
         const p = pending.get(m.re);
         pending.delete(m.re);
-        if (p) m.ok ? p.resolve(m.data) : p.reject(new Error(m.error ?? "Request failed"));
+        if (p) m.ok ? p.resolve(m.data) : p.reject(new Error(m.error ?? tr("Request failed")));
       } else onPush(m as ServerPush);
     } catch {
       /* ignore malformed frames */
@@ -203,7 +204,7 @@ async function open(url: string, hosting: boolean): Promise<void> {
   l.onclose = () => {
     if (link !== l) return;
     link = null;
-    for (const p of pending.values()) p.reject(new Error("Connection lost"));
+    for (const p of pending.values()) p.reject(new Error(tr("Connection lost")));
     pending.clear();
     if (!wanted) return;
     useSocial.setState({ conn: "offline" });
@@ -356,7 +357,7 @@ function hostServer(): Promise<SocialServer> {
     try {
       if (row) state = { ...state, ...JSON.parse(row.value) };
     } catch {
-      toast("Hosted data could not be read", "Starting with an empty group.", "error");
+      toast(tr("Hosted data could not be read"), tr("Starting with an empty group."), "error");
     }
     // Saved immediately on change (at most every 300 ms), never on a delay that a backgrounded or closing
     // window might not get to run, and once more when the window closes.
@@ -394,7 +395,7 @@ export async function startGroupHost(code: string): Promise<void> {
 
 /** Hosts for friends on the same network (desktop app only): the Rust side relays WebSocket frames to the in-app server. */
 export async function startHost(port: number): Promise<void> {
-  if (!isTauri()) throw new Error("Hosting on the local network needs the desktop app.");
+  if (!isTauri()) throw new Error(tr("Hosting on the local network needs the desktop app."));
   if (unlisten) return;
   const { invoke } = await import("@tauri-apps/api/core");
   const { listen } = await import("@tauri-apps/api/event");

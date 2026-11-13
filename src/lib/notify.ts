@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 import { create } from "zustand";
 import { isTauri } from "@/db/driver";
 
@@ -22,7 +23,7 @@ export const dismissToast = (id: number) => useToasts.setState((s) => ({ toasts:
 export function reportError(e: unknown) {
   const issues = (e as { issues?: Array<{ message: string }> })?.issues;
   const msg = issues?.[0]?.message ?? (e instanceof Error ? e.message : String(e));
-  toast("Could not complete that", msg, "error");
+  toast(tr("Could not complete that"), msg, "error");
 }
 
 /** Wraps an async action so any failure surfaces as a toast. Returns true on success. */

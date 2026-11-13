@@ -1,3 +1,4 @@
+import { tn, tr } from "@/i18n";
 import { z } from "zod";
 import { db, type Statement } from "@/db/driver";
 import { TABLES } from "@/db/migrations";
@@ -29,7 +30,7 @@ export async function setSetting<K extends keyof Settings>(key: K, value: Settin
 }
 
 export async function saveProfile(display_name: string): Promise<void> {
-  const name = z.string().trim().min(1, "Enter a display name").max(60).parse(display_name);
+  const name = z.string().trim().min(1, tr("Enter a display name")).max(60).parse(display_name);
   const p = data().profile;
   await mutate([p ? updateStmt("profiles", p.id, { display_name: name }) : insertStmt("profiles", { id: newId(), display_name: name, created_at: now() })], ["profiles"]);
 }
@@ -37,8 +38,8 @@ export async function saveProfile(display_name: string): Promise<void> {
 // ---- categories & tags ------------------------------------------------------
 
 export async function saveCategory(input: { id?: string; name: string; color: string }): Promise<string> {
-  const name = z.string().trim().min(1, "Name the category").max(60).parse(input.name);
-  if (data().categories.some((c) => c.id !== input.id && c.name.toLowerCase() === name.toLowerCase())) throw new Error(`A category named "${name}" already exists`);
+  const name = z.string().trim().min(1, tr("Name the category")).max(60).parse(input.name);
+  if (data().categories.some((c) => c.id !== input.id && c.name.toLowerCase() === name.toLowerCase())) throw new Error(tr("A category named \"{0}\" already exists", name));
   const id = input.id ?? newId();
   await mutate(
     [input.id ? updateStmt("categories", id, { name, color: input.color }) : insertStmt("categories", { id, name, color: input.color, sort_order: data().categories.length, created_at: now() })],
@@ -130,7 +131,7 @@ export async function setTaskTags(taskId: string, tagIds: string[]): Promise<voi
 }
 
 export async function setDependency(taskId: string, dependsOnId: string, on: boolean): Promise<void> {
-  if (taskId === dependsOnId) throw new Error("A task cannot depend on itself");
+  if (taskId === dependsOnId) throw new Error(tr("A task cannot depend on itself"));
   if (on) {
     // Reject cycles: walk what `dependsOnId` (transitively) depends on.
     const deps = data().deps;
@@ -138,7 +139,7 @@ export async function setDependency(taskId: string, dependsOnId: string, on: boo
     const stack = [dependsOnId];
     while (stack.length) {
       const cur = stack.pop()!;
-      if (cur === taskId) throw new Error("That would create a circular dependency");
+      if (cur === taskId) throw new Error(tr("That would create a circular dependency"));
       if (seen.has(cur)) continue;
       seen.add(cur);
       for (const d of deps) if (d.task_id === cur) stack.push(d.depends_on_id);
@@ -204,7 +205,7 @@ export async function generateOccurrences(today: DateStr = todayStr()): Promise<
 
 export async function createSeries(tpl: SeriesTemplate, rule: RecurrenceRule, replaceTaskId?: string): Promise<string> {
   const r = ruleInput.parse(rule);
-  const title = z.string().trim().min(1, "A task needs a title").max(500).parse(tpl.title);
+  const title = z.string().trim().min(1, tr("A task needs a title")).max(500).parse(tpl.title);
   const ruleId = newId();
   const seriesId = newId();
   const ts = now();
@@ -237,7 +238,7 @@ export async function updateSeries(seriesId: string, tpl: SeriesTemplate, rule: 
   const oldRule = st.rules.find((r) => r.id === series?.rule_id);
   if (!series || !oldRule) return;
   const r = ruleInput.parse(rule);
-  const title = z.string().trim().min(1, "A task needs a title").max(500).parse(tpl.title);
+  const title = z.string().trim().min(1, tr("A task needs a title")).max(500).parse(tpl.title);
   const ts = now();
   const today = todayStr();
   const through = addDays(today, RECURRENCE_HORIZON_DAYS);
@@ -349,7 +350,7 @@ export const deleteProject = (id: string) =>
   mutate([deleteStmt("projects", id)], ["projects", "milestones", "tasks", "task_series", "time_entries", "focus_sessions", "calendar_events", "goals", "activity_logs"]);
 
 export async function addMilestone(project_id: string, title: string, due_date: DateStr | null): Promise<void> {
-  const t = z.string().trim().min(1, "Name the milestone").max(300).parse(title);
+  const t = z.string().trim().min(1, tr("Name the milestone")).max(300).parse(title);
   await mutate(
     [insertStmt("milestones", { id: newId(), project_id, title: t, due_date, sort_order: now(), created_at: now() }), ...logStmt(project_id, "milestone_added", `Milestone added: ${t}`)],
     ["milestones", "activity_logs"],
@@ -393,7 +394,7 @@ function entryContext(v: EntryInput) {
 
 export async function addManualEntry(input: EntryInput): Promise<void> {
   const v = entryInput.parse(input);
-  if (v.ended_at > now() + 60_000) throw new Error("Time entries cannot end in the future");
+  if (v.ended_at > now() + 60_000) throw new Error(tr("Time entries cannot end in the future"));
   const ts = now();
   await mutate(
     [insertStmt("time_entries", { id: newId(), session_id: null, source: "manual", ...entryContext(v), started_at: v.started_at, ended_at: v.ended_at, description: v.description ?? "", created_at: ts, updated_at: ts })],
@@ -414,7 +415,7 @@ export async function updateSession(id: string, patch: Partial<Pick<FocusSession
 }
 
 export async function deleteSession(id: string): Promise<void> {
-  if (data().sessions.find((s) => s.id === id)?.status === "active") throw new Error("This session is still running. Stop the timer first, then delete it.");
+  if (data().sessions.find((s) => s.id === id)?.status === "active") throw new Error(tr("This session is still running. Stop the timer first, then delete it."));
   await mutate([deleteStmt("focus_sessions", id)], ["focus_sessions", "time_entries"]);
 }
 
@@ -467,7 +468,7 @@ export async function restHabitDay(habit_id: string, date: DateStr): Promise<voi
 export async function saveGoal(input: GoalInput & { id?: string }): Promise<void> {
   const { id, ...rest } = input;
   const v = goalInput.parse(rest);
-  if (v.period === "custom" && (!v.start_date || !v.end_date || v.end_date < v.start_date)) throw new Error("A custom goal needs a valid start and end date");
+  if (v.period === "custom" && (!v.start_date || !v.end_date || v.end_date < v.start_date)) throw new Error(tr("A custom goal needs a valid start and end date"));
   const row = { title: v.title, period: v.period, metric: v.metric, target_value: v.target_value, project_id: v.project_id ?? null, category_id: v.category_id ?? null, start_date: v.start_date ?? null, end_date: v.end_date ?? null };
   await mutate([id ? updateStmt("goals", id, row) : insertStmt("goals", { id: newId(), ...row, created_at: now() })], ["goals"]);
 }
@@ -487,7 +488,7 @@ export async function saveJournal(date: DateStr, patch: Partial<Omit<JournalEntr
 }
 
 export async function saveSmartView(name: string, filter: TaskFilter): Promise<void> {
-  const n = z.string().trim().min(1, "Name the view").max(60).parse(name);
+  const n = z.string().trim().min(1, tr("Name the view")).max(60).parse(name);
   await mutate([insertStmt("smart_views", { id: newId(), name: n, filter, created_at: now() })], ["smart_views"]);
 }
 export const deleteSmartView = (id: string) => mutate([deleteStmt("smart_views", id)], ["smart_views"]);
@@ -495,7 +496,7 @@ export const deleteSmartView = (id: string) => mutate([deleteStmt("smart_views",
 // ---- rewards ----------------------------------------------------------------
 
 export async function saveReward(input: { id?: string; title: string; cost: number }): Promise<void> {
-  const v = z.object({ title: z.string().trim().min(1, "Name the reward").max(120), cost: z.number().int("Cost must be a whole number").min(1, "Cost must be at least 1 token").max(100_000) }).parse({ title: input.title, cost: input.cost });
+  const v = z.object({ title: z.string().trim().min(1, tr("Name the reward")).max(120), cost: z.number().int(tr("Cost must be a whole number")).min(1, tr("Cost must be at least 1 token")).max(100_000) }).parse({ title: input.title, cost: input.cost });
   await mutate([input.id ? updateStmt("rewards", input.id, v) : insertStmt("rewards", { id: newId(), ...v, created_at: now() })], ["rewards"]);
 }
 
@@ -505,9 +506,9 @@ export const archiveReward = (id: string) => mutate([updateStmt("rewards", id, {
 export async function redeemReward(id: string): Promise<void> {
   const st = data();
   const reward = st.rewards.find((r) => r.id === id && !r.archived_at);
-  if (!reward) throw new Error("That reward no longer exists");
+  if (!reward) throw new Error(tr("That reward no longer exists"));
   const { tokens } = gameState(st);
-  if (tokens < reward.cost) throw new Error(`You need ${reward.cost - tokens} more token${reward.cost - tokens === 1 ? "" : "s"} for this`);
+  if (tokens < reward.cost) throw new Error(tr("You need {0} for this", tn(reward.cost - tokens, "more token")));
   await mutate([insertStmt("reward_redemptions", { id: newId(), reward_id: id, title: reward.title, cost: reward.cost, redeemed_at: now() })], ["reward_redemptions"]);
 }
 
@@ -536,7 +537,7 @@ export async function exportAll(): Promise<ExportFile> {
 export async function importAll(raw: unknown): Promise<void> {
   const file = exportSchema.parse(raw);
   const current = await schemaVersion();
-  if (file.schema_version > current) throw new Error("This file was exported by a newer version of Tempo");
+  if (file.schema_version > current) throw new Error(tr("This file was exported by a newer version of Tempo"));
   const stmts: Statement[] = [{ sql: "PRAGMA defer_foreign_keys = ON" }];
   for (const t of [...TABLES].reverse()) stmts.push({ sql: `DELETE FROM ${t}` });
   for (const t of TABLES) {

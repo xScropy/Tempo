@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 import { create } from "zustand";
 import { db } from "@/db/driver";
 import { parseRows } from "@/db/sql";
@@ -13,8 +14,15 @@ export interface WidgetConfig {
   wide: boolean;
 }
 
+export const ACCENTS = ["teal", "green", "blue", "purple", "pink", "rose", "orange", "brown", "graphite"] as const;
+export type Accent = (typeof ACCENTS)[number];
+
 export interface Settings {
   theme: "system" | "light" | "dark";
+  /** accent colour theme */
+  accent: Accent;
+  /** interface language; null = follow the system on first run */
+  language: "en" | "ar" | null;
   /** 0 = Sunday … 6 = Saturday */
   weekStart: number;
   focusMin: number;
@@ -56,20 +64,22 @@ export interface Settings {
 }
 
 export const WIDGETS: Array<{ id: string; title: string }> = [
-  { id: "schedule", title: "Today's schedule" },
-  { id: "priority", title: "Priority tasks" },
-  { id: "projects", title: "Active projects" },
-  { id: "focus", title: "Focus this week" },
-  { id: "targets", title: "Weekly targets" },
-  { id: "deadlines", title: "Upcoming deadlines" },
-  { id: "habits", title: "Habits today" },
-  { id: "categories", title: "Time by category" },
-  { id: "activity", title: "Recent activity" },
-  { id: "quests", title: "Today's quests" },
+  { id: "schedule", title: tr("Today's schedule") },
+  { id: "priority", title: tr("Priority tasks") },
+  { id: "projects", title: tr("Active projects") },
+  { id: "focus", title: tr("Focus this week") },
+  { id: "targets", title: tr("Weekly targets") },
+  { id: "deadlines", title: tr("Upcoming deadlines") },
+  { id: "habits", title: tr("Habits today") },
+  { id: "categories", title: tr("Time by category") },
+  { id: "activity", title: tr("Recent activity") },
+  { id: "quests", title: tr("Today's quests") },
 ];
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: "system",
+  accent: "teal",
+  language: null,
   weekStart: 1,
   focusMin: 25,
   shortBreakMin: 5,

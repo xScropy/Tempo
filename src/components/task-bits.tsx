@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 import { CalendarDays, Clock, CornerDownRight, Flag, Play, Repeat, Trash2 } from "lucide-react";
 import { memo } from "react";
 import { addDays, fmtDate, fmtDuration, todayStr } from "@/domain/dates";
@@ -16,7 +17,7 @@ const PRIORITY_TONE: Record<number, string> = { 1: "text-danger", 2: "text-warn"
 export function PriorityFlag({ priority, className }: { priority: number; className?: string }) {
   if (priority === 5) return null;
   return (
-    <span title={`${PRIORITY_LABEL[priority]} priority`} className={cx("inline-flex", PRIORITY_TONE[priority], className)}>
+    <span title={tr("{0} priority", PRIORITY_LABEL[priority])} className={cx("inline-flex", PRIORITY_TONE[priority], className)}>
       <Flag size={12} fill={priority <= 2 ? "currentColor" : "none"} />
     </span>
   );
@@ -29,7 +30,7 @@ export function TaskCheck({ task, size = 16 }: { task: Task; size?: number }) {
       type="button"
       role="checkbox"
       aria-checked={done}
-      aria-label={done ? "Mark as not done" : "Mark as done"}
+      aria-label={done ? tr("Mark as not done") : tr("Mark as done")}
       onClick={(e) => {
         e.stopPropagation();
         void attempt(() => toggleTask(task));
@@ -56,9 +57,9 @@ export function ProjectDot({ project, className }: { project: Project | undefine
 
 export async function removeTask(task: Task) {
   const ok = await confirmDialog({
-    title: `Delete "${task.title}"?`,
-    body: task.series_id ? "Only this occurrence is deleted. The rest of the series is unaffected." : "Its subtasks are deleted too. Tracked time is kept in your reports.",
-    confirmLabel: "Delete",
+    title: tr("Delete \"{0}\"?", task.title),
+    body: task.series_id ? tr("Only this occurrence is deleted. The rest of the series is unaffected.") : tr("Its subtasks are deleted too. Tracked time is kept in your reports."),
+    confirmLabel: tr("Delete"),
     danger: true,
   });
   if (!ok) return;
@@ -69,30 +70,30 @@ export async function removeTask(task: Task) {
 export function taskMenu(task: Task): MenuItem[] {
   const today = todayStr();
   return [
-    { label: "Start focus session", icon: <Play size={13} />, onSelect: () => void attempt(() => startSession({ mode: "pomodoro", taskId: task.id })).then((ok) => ok && navigate("focus")) },
-    { label: "Start stopwatch", icon: <Clock size={13} />, onSelect: () => void attempt(() => startSession({ mode: "stopwatch", taskId: task.id })).then((ok) => ok && navigate("focus")) },
+    { label: tr("Start focus session"), icon: <Play size={13} />, onSelect: () => void attempt(() => startSession({ mode: "pomodoro", taskId: task.id })).then((ok) => ok && navigate("focus")) },
+    { label: tr("Start stopwatch"), icon: <Clock size={13} />, onSelect: () => void attempt(() => startSession({ mode: "stopwatch", taskId: task.id })).then((ok) => ok && navigate("focus")) },
     "sep",
     {
-      label: "Status",
+      label: tr("Status"),
       children: TASK_STATUSES.map((s) => ({ label: STATUS_LABEL[s], checked: task.status === s, onSelect: () => void attempt(() => updateTask(task.id, { status: s })) })),
     },
     {
-      label: "Priority",
+      label: tr("Priority"),
       icon: <Flag size={13} />,
       children: [1, 2, 3, 4, 5].map((p) => ({ label: PRIORITY_LABEL[p]!, checked: task.priority === p, onSelect: () => void attempt(() => updateTask(task.id, { priority: p })) })),
     },
     {
-      label: "Due",
+      label: tr("Due"),
       icon: <CalendarDays size={13} />,
       children: [
-        { label: "Today", onSelect: () => void attempt(() => updateTask(task.id, { due_date: today })) },
-        { label: "Tomorrow", onSelect: () => void attempt(() => updateTask(task.id, { due_date: addDays(today, 1) })) },
-        { label: "Next week", onSelect: () => void attempt(() => updateTask(task.id, { due_date: addDays(today, 7) })) },
-        { label: "No date", onSelect: () => void attempt(() => updateTask(task.id, { due_date: null })) },
+        { label: tr("Today"), onSelect: () => void attempt(() => updateTask(task.id, { due_date: today })) },
+        { label: tr("Tomorrow"), onSelect: () => void attempt(() => updateTask(task.id, { due_date: addDays(today, 1) })) },
+        { label: tr("Next week"), onSelect: () => void attempt(() => updateTask(task.id, { due_date: addDays(today, 7) })) },
+        { label: tr("No date"), onSelect: () => void attempt(() => updateTask(task.id, { due_date: null })) },
       ],
     },
     "sep",
-    { label: "Delete", icon: <Trash2 size={13} />, danger: true, onSelect: () => void removeTask(task) },
+    { label: tr("Delete"), icon: <Trash2 size={13} />, danger: true, onSelect: () => void removeTask(task) },
   ];
 }
 
@@ -134,26 +135,26 @@ export const TaskRow = memo(function TaskRow({ task, showProject = true, indent,
             void attempt(() => toggleTask(task));
           }
         }}
-        className={cx("group flex min-h-[36px] items-center gap-2.5 border-b border-line px-3 py-1.5 outline-none transition-colors hover:bg-hover/60 focus-visible:bg-hover", selected && "bg-accent/10 hover:bg-accent/10", indent && "pl-9")}
+        className={cx("group flex min-h-[36px] items-center gap-2.5 border-b border-line px-3 py-1.5 outline-none transition-colors hover:bg-hover/60 focus-visible:bg-hover", selected && "bg-accent/10 hover:bg-accent/10", indent && "ps-9")}
       >
-        {indent && <CornerDownRight size={12} className="-ml-5 shrink-0 text-ink-3" />}
+        {indent && <CornerDownRight size={12} className="rtl:rotate-180 -ms-5 shrink-0 text-ink-3" />}
         <TaskCheck task={task} />
         <div className="min-w-0 flex-1">
           <div className={cx("truncate", done && "text-ink-3 line-through")}>{task.title}</div>
         </div>
         <div className="flex shrink-0 items-center gap-2.5 text-xs text-ink-2">
-          {blocked && !done && <span className="text-warn" title="Waiting on another task">Blocked</span>}
-          {task.status === "in_progress" && <span className="text-accent">In progress</span>}
-          {task.status === "on_hold" && <span>On hold</span>}
-          {subCount > 0 && <span className="tabular" title="Subtasks done">{subDone}/{subCount}</span>}
+          {blocked && !done && <span className="text-warn" title={tr("Waiting on another task")}>{tr("Blocked")}</span>}
+          {task.status === "in_progress" && <span className="text-accent">{tr("In progress")}</span>}
+          {task.status === "on_hold" && <span>{tr("On hold")}</span>}
+          {subCount > 0 && <span className="tabular" title={tr("Subtasks done")}>{subDone}/{subCount}</span>}
           {(task.estimated_seconds || actual > 0) && (
-            <span className="tabular inline-flex items-center gap-1" title="Tracked / estimated">
+            <span className="tabular inline-flex items-center gap-1" title={tr("Tracked / estimated")}>
               <Clock size={11} className="text-ink-3" />
               {actual > 0 ? fmtDuration(actual) : "0m"}
               {task.estimated_seconds ? <span className="text-ink-3">/ {fmtDuration(task.estimated_seconds)}</span> : null}
             </span>
           )}
-          {task.series_id && <Repeat size={11} className="text-ink-3" aria-label="Recurring" />}
+          {task.series_id && <Repeat size={11} className="text-ink-3" aria-label={tr("Recurring")} />}
           {showProject && project && (
             <span className="inline-flex max-w-[140px] items-center gap-1.5 truncate">
               <ProjectDot project={project} />

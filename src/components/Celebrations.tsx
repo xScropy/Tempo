@@ -1,3 +1,4 @@
+import { isRtl, tr } from "@/i18n";
 import { Coins, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
 import { EMPTY_DAY, achievementsFor, levelTitle, questsFor, tokensEarned, xpForLevel } from "@/domain/game";
@@ -70,11 +71,11 @@ export function Celebrations() {
       return;
     }
     if (newAch.length) {
-      for (const a of newAch) toast(`Achievement unlocked: ${a.title}`, a.description, "ok");
+      for (const a of newAch) toast(tr("Achievement unlocked: {0}", a.title), a.description, "ok");
       confetti("big");
       if (sounds) chime("level");
     } else if (newQuests.length) {
-      confetti("small", 120, window.innerHeight - 110);
+      confetti("small", isRtl ? window.innerWidth - 120 : 120, window.innerHeight - 110);
       if (sounds) chime("quest");
     } else if (sounds) chime("xp");
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -82,11 +83,11 @@ export function Celebrations() {
 
   return (
     <>
-      <div className="no-print pointer-events-none fixed bottom-[118px] left-3 z-[65] flex flex-col-reverse gap-1" aria-live="polite">
+      <div className="no-print pointer-events-none fixed bottom-[118px] start-3 z-[65] flex flex-col-reverse gap-1" aria-live="polite">
         {pops.map((p) => (
           <div key={p.id} className="xp-pop inline-flex w-max items-center gap-1.5 rounded-full bg-accent px-2.5 py-1 text-sm font-semibold text-accent-ink shadow-pop">
             <Sparkles size={13} />
-            <span className="tabular">+{p.amount} XP</span>
+            <span className="tabular">+{p.amount}{" "}{tr("XP")}</span>
             {p.label && <span className="font-normal opacity-90">· {p.label}</span>}
           </div>
         ))}
@@ -95,19 +96,19 @@ export function Celebrations() {
         <ConfettiBurst key={b.id} burst={b} />
       ))}
       {levelUp && (
-        <div className="fixed inset-0 z-[68] flex items-center justify-center bg-black/45" role="dialog" aria-label={`Level ${levelUp.level} reached`} onClick={() => useCelebrate.setState({ levelUp: null })}>
+        <div className="fixed inset-0 z-[68] flex items-center justify-center bg-black/45" role="dialog" aria-label={tr("Level {0} reached", levelUp.level)} onClick={() => useCelebrate.setState({ levelUp: null })}>
           <div className="level-card w-[min(92vw,360px)] rounded-xl border border-line bg-surface px-6 py-7 text-center shadow-pop" onClick={(e) => e.stopPropagation()}>
-            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Level up</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">{tr("Level up")}</div>
             <div className="level-number tabular mx-auto my-3 flex h-28 w-28 items-center justify-center rounded-full text-[56px] font-bold leading-none text-accent-ink">{levelUp.level}</div>
             <div className="text-lg font-semibold">{levelTitle(levelUp.level)}</div>
-            <div className="mt-1 text-sm text-ink-2">Earned by real focus time, finished tasks and habits.</div>
+            <div className="mt-1 text-sm text-ink-2">{tr("Earned by real focus time, finished tasks and habits.")}</div>
             <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-warn/10 px-3 py-1 text-sm font-medium text-warn">
-              <Coins size={14} /> {g.tokens} tokens to spend
+              <Coins size={14} /> {g.tokens}{" "}{tr("tokens to spend")}
             </div>
             <div className="mt-5 flex justify-center gap-2">
-              <Button onClick={() => (useCelebrate.setState({ levelUp: null }), navigate("rewards"))}>See rewards</Button>
+              <Button onClick={() => (useCelebrate.setState({ levelUp: null }), navigate("rewards"))}>{tr("See rewards")}</Button>
               <Button variant="primary" autoFocus onClick={() => useCelebrate.setState({ levelUp: null })}>
-                Keep going
+                {tr("Keep going")}
               </Button>
             </div>
           </div>

@@ -1,3 +1,4 @@
+import { isRtl, lang, storeLang, tr } from "@/i18n";
 import { useEffect, useRef, useState } from "react";
 import { isTauri, openDatabase } from "@/db/driver";
 import { todayStr } from "@/domain/dates";
@@ -41,6 +42,14 @@ async function bootOnce() {
   await reload();
   await generateOccurrences();
   await restoreTimer();
+  // The language is read from localStorage before anything renders. If the database says otherwise
+  // (a restored backup, another device's export), follow the database and start again once.
+  const saved = data().settings.language;
+  if (saved && saved !== lang) {
+    storeLang(saved);
+    window.location.reload();
+    return;
+  }
   useData.setState({ ready: true });
   initSocial();
   const s = data().settings;
@@ -52,6 +61,10 @@ async function bootOnce() {
 
 function useTheme() {
   const theme = useData((s) => s.settings.theme);
+  const accent = useData((s) => s.settings.accent);
+  useEffect(() => {
+    document.documentElement.dataset.accent = accent;
+  }, [accent]);
   useEffect(() => {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const apply = () => document.documentElement.classList.toggle("dark", theme === "dark" || (theme === "system" && mq.matches));
@@ -126,8 +139,9 @@ function DetailPanel({ taskId }: { taskId: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const start = (e: React.PointerEvent) => {
     e.preventDefault();
-    const right = ref.current!.getBoundingClientRect().right;
-    const clamp = (x: number) => Math.min(720, Math.max(340, right - x));
+    const rect = ref.current!.getBoundingClientRect();
+    // The panel sits at the end of the row: on the right normally, on the left in right-to-left layouts.
+    const clamp = (x: number) => Math.min(720, Math.max(340, isRtl ? x - rect.left : rect.right - x));
     const move = (ev: PointerEvent) => setDrag(clamp(ev.clientX));
     const up = (ev: PointerEvent) => {
       window.removeEventListener("pointermove", move);
@@ -139,8 +153,8 @@ function DetailPanel({ taskId }: { taskId: string }) {
     window.addEventListener("pointerup", up);
   };
   return (
-    <aside ref={ref} aria-label="Task details" className="no-print relative shrink-0 border-l border-line bg-surface" style={{ width: drag ?? width }}>
-      <div role="separator" aria-orientation="vertical" aria-label="Resize panel" onPointerDown={start} className="absolute inset-y-0 -left-1 z-20 w-2 cursor-col-resize hover:bg-accent/30" />
+    <aside ref={ref} aria-label={tr("Task details")} className="no-print relative shrink-0 border-s border-line bg-surface" style={{ width: drag ?? width }}>
+      <div role="separator" aria-orientation="vertical" aria-label={tr("Resize panel")} onPointerDown={start} className="absolute inset-y-0 -start-1 z-20 w-2 cursor-col-resize hover:bg-accent/30" />
       <TaskDetail taskId={taskId} />
     </aside>
   );
@@ -171,9 +185,9 @@ export function App() {
     return (
       <div className="flex h-full items-center justify-center p-8">
         <div className="max-w-md text-center">
-          <div className="text-lg font-semibold">Tempo could not open its database</div>
+          <div className="text-lg font-semibold">{tr("Tempo could not open its database")}</div>
           <div className="selectable mt-2 text-sm text-ink-2">{error}</div>
-          <div className="mt-2 text-sm text-ink-2">Your data has not been modified. Restart Tempo; if this keeps happening, restore the most recent file from the backups folder.</div>
+          <div className="mt-2 text-sm text-ink-2">{tr("Your data has not been modified. Restart Tempo; if this keeps happening, restore the most recent file from the backups folder.")}</div>
         </div>
       </div>
     );

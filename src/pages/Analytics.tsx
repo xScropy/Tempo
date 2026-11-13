@@ -1,3 +1,4 @@
+import { tn, tr } from "@/i18n";
 import { Printer } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -10,7 +11,7 @@ import { useUi } from "@/store/ui";
 import { Button, Empty, PageHeader, Section, Segmented, Select, Stat, cx } from "@/components/ui";
 
 type RangeKey = "week" | "last_week" | "month" | "last_month" | "d30" | "d90";
-const RANGE_LABEL: Record<RangeKey, string> = { week: "This week", last_week: "Last week", month: "This month", last_month: "Last month", d30: "Last 30 days", d90: "Last 90 days" };
+const RANGE_LABEL: Record<RangeKey, string> = { week: tr("This week"), last_week: tr("Last week"), month: tr("This month"), last_month: tr("Last month"), d30: tr("Last 30 days"), d90: tr("Last 90 days") };
 
 function rangeOf(key: RangeKey, today: DateStr, weekStart: number): { start: DateStr; end: DateStr } {
   const w = startOfWeek(today, weekStart);
@@ -51,7 +52,7 @@ function ChartTip({ active, payload, label }: { active?: boolean; payload?: Arra
 const axis = { fontSize: 11, fill: "rgb(var(--ink-3))" };
 
 function Distribution({ rows, total }: { rows: Array<{ key: string; label: string; seconds: number }>; total: number }) {
-  if (!rows.length) return <div className="px-3 py-6 text-center text-sm text-ink-2">No tracked time in this period.</div>;
+  if (!rows.length) return <div className="px-3 py-6 text-center text-sm text-ink-2">{tr("No tracked time in this period.")}</div>;
   const max = rows[0]!.seconds;
   return (
     <div className="px-3 py-2">
@@ -61,11 +62,11 @@ function Distribution({ rows, total }: { rows: Array<{ key: string; label: strin
           <div className="h-2 flex-1 overflow-hidden rounded-sm bg-hover">
             <div className="h-full rounded-sm" style={{ width: `${(r.seconds / max) * 100}%`, background: r.key === "" ? "rgb(var(--ink-3))" : "var(--chart-1)" }} />
           </div>
-          <span className="tabular w-16 shrink-0 text-right">{fmtDuration(r.seconds)}</span>
-          <span className="tabular w-10 shrink-0 text-right text-xs text-ink-3">{total ? Math.round((r.seconds / total) * 100) : 0}%</span>
+          <span className="tabular w-16 shrink-0 text-end">{fmtDuration(r.seconds)}</span>
+          <span className="tabular w-10 shrink-0 text-end text-xs text-ink-3">{total ? Math.round((r.seconds / total) * 100) : 0}%</span>
         </div>
       ))}
-      {rows.length > 12 && <div className="pt-1 text-xs text-ink-3">+{rows.length - 12} more with {fmtDuration(rows.slice(12).reduce((a, r) => a + r.seconds, 0))}</div>}
+      {rows.length > 12 && <div className="pt-1 text-xs text-ink-3">+{rows.length - 12}{" "}{tr("more with")}{" "}{fmtDuration(rows.slice(12).reduce((a, r) => a + r.seconds, 0))}</div>}
     </div>
   );
 }
@@ -105,13 +106,13 @@ export function AnalyticsPage() {
       }
     } else {
       for (let w = startOfWeek(start, s.settings.weekStart); w <= end; w = addDays(w, 7)) {
-        let tr = 0;
+        let trk = 0;
         let pl = 0;
         for (let i = 0; i < 7; i++) {
-          tr += perDay.get(addDays(w, i)) ?? 0;
+          trk += perDay.get(addDays(w, i)) ?? 0;
           pl += planned.get(addDays(w, i)) ?? 0;
         }
-        series.push({ label: fmtDate(w, "").replace(/ \d{4}$/, "").replace(/^\w+ /, ""), Tracked: hours(tr), Planned: hours(pl) });
+        series.push({ label: fmtDate(w, "").replace(/ \d{4}$/, "").replace(/^\w+ /, ""), Tracked: hours(trk), Planned: hours(pl) });
       }
     }
 
@@ -141,7 +142,7 @@ export function AnalyticsPage() {
     const key = (e: (typeof m.inRange)[number]) => (dim === "project" ? e.project_id : dim === "category" ? e.category_id : dim === "task" ? e.task_id : e.task_id ? (s.taskTags[e.task_id] ?? []) : []);
     const label = (k: string) => (dim === "project" ? pm.get(k)?.name : dim === "category" ? cm.get(k)?.name : dim === "task" ? tm.get(k)?.title : gm.get(k) ? `#${gm.get(k)!.name}` : undefined);
     const none = { project: "No project", category: "Uncategorised", task: "No task", tag: "Untagged" }[dim];
-    return [...secondsByGroup(m.inRange, key, from, to).entries()].map(([k, seconds]) => ({ key: k, label: k === "" ? none : (label(k) ?? "(deleted)"), seconds })).sort((a, b) => b.seconds - a.seconds);
+    return [...secondsByGroup(m.inRange, key, from, to).entries()].map(([k, seconds]) => ({ key: k, label: k === "" ? none : (label(k) ?? tr("(deleted)")), seconds })).sort((a, b) => b.seconds - a.seconds);
   }, [m.inRange, dim, s.projects, s.categories, s.tasks, s.tags, s.taskTags, from, to]);
 
   const habitRows = useMemo(() => s.habits.filter((h) => !h.archived_at).map((h) => ({ h, c: consistency(h, habitDays(h.id, s.habitEntries), start, end, today) })), [s.habits, s.habitEntries, start, end, today]);
@@ -151,31 +152,31 @@ export function AnalyticsPage() {
 
   return (
     <div className="print-area flex h-full flex-col">
-      <PageHeader title="Analytics" subtitle={`${fmtDate(start, "")} – ${fmtDate(end, "")}`}>
-        <Select className="!w-40" aria-label="Period" value={rangeKey} onChange={(e) => setRangeKey(e.target.value as RangeKey)}>
+      <PageHeader title={tr("Analytics")} subtitle={`${fmtDate(start, "")} – ${fmtDate(end, "")}`}>
+        <Select className="!w-40" aria-label={tr("Period")} value={rangeKey} onChange={(e) => setRangeKey(e.target.value as RangeKey)}>
           {(Object.keys(RANGE_LABEL) as RangeKey[]).map((k) => (
             <option key={k} value={k}>{RANGE_LABEL[k]}</option>
           ))}
         </Select>
-        <Button icon={<Printer size={14} />} onClick={() => window.print()} title="Print or save this report as a PDF">
-          Print / PDF
+        <Button icon={<Printer size={14} />} onClick={() => window.print()} title={tr("Print or save this report as a PDF")}>
+          {tr("Print / PDF")}
         </Button>
       </PageHeader>
       <div className="print-area min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
-        <div className="hidden text-lg font-semibold print:block">Tempo report · {RANGE_LABEL[rangeKey]} ({start} – {end})</div>
-        {!hasData && <Empty title="Nothing to analyse in this period yet" body="Reports are built only from time you actually tracked and tasks you actually completed. Run a focus session or pick another period." />}
+        <div className="hidden text-lg font-semibold print:block">{tr("Tempo report ·")}{" "}{RANGE_LABEL[rangeKey]} ({start} – {end})</div>
+        {!hasData && <Empty title={tr("Nothing to analyse in this period yet")} body={tr("Reports are built only from time you actually tracked and tasks you actually completed. Run a focus session or pick another period.")} />}
 
         <div className="grid grid-cols-2 gap-x-6 gap-y-4 rounded-md border border-line bg-surface px-4 py-3 md:grid-cols-4 xl:grid-cols-7">
-          <Stat label="Focus time" value={fmtDuration(m.total)} sub={`${fmtDuration(m.total / elapsedDays)} / day average`} />
-          <Stat label="Planned time" value={fmtDuration(m.plannedTotal)} sub="scheduled on the calendar" />
-          <Stat label="Sessions" value={m.completedSessions.length} sub={`${m.sessions.length - m.completedSessions.length} interrupted`} />
-          <Stat label="Average session" value={m.sessions.length ? fmtDuration(m.sessionTotal / m.sessions.length) : "—"} sub="of actual focus" />
-          <Stat label="Tasks completed" value={m.completed.length} />
-          <Stat label="Due tasks finished" value={m.dueInRange.length ? `${Math.round((m.dueDone / m.dueInRange.length) * 100)}%` : "—"} sub={`${m.dueDone} of ${m.dueInRange.length} due so far`} />
-          <Stat label="Estimate accuracy" value={m.est.accuracy == null ? "—" : `${Math.round(m.est.accuracy * 100)}%`} sub={m.est.samples ? `${m.est.samples} estimated task${m.est.samples === 1 ? "" : "s"}` : "no estimated tasks done"} />
+          <Stat label={tr("Focus time")} value={fmtDuration(m.total)} sub={tr("{0} / day average", fmtDuration(m.total / elapsedDays))} />
+          <Stat label={tr("Planned time")} value={fmtDuration(m.plannedTotal)} sub={tr("scheduled on the calendar")} />
+          <Stat label={tr("Sessions")} value={m.completedSessions.length} sub={tr("{0} interrupted", m.sessions.length - m.completedSessions.length)} />
+          <Stat label={tr("Average session")} value={m.sessions.length ? fmtDuration(m.sessionTotal / m.sessions.length) : "—"} sub={tr("of actual focus")} />
+          <Stat label={tr("Tasks completed")} value={m.completed.length} />
+          <Stat label={tr("Due tasks finished")} value={m.dueInRange.length ? `${Math.round((m.dueDone / m.dueInRange.length) * 100)}%` : "—"} sub={tr("{0} of {1} due so far", m.dueDone, m.dueInRange.length)} />
+          <Stat label={tr("Estimate accuracy")} value={m.est.accuracy == null ? "—" : `${Math.round(m.est.accuracy * 100)}%`} sub={m.est.samples ? tn(m.est.samples, "estimated task") : tr("no estimated tasks done")} />
         </div>
 
-        <Section title={`Planned vs. tracked time per ${m.weekly ? "week" : "day"} (hours)`}>
+        <Section title={tr("Planned vs. tracked time per {0} (hours)", m.weekly ? "week" : "day")}>
           <div className="h-[240px] px-2 py-3">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={m.series} barGap={2} barCategoryGap="22%">
@@ -193,14 +194,14 @@ export function AnalyticsPage() {
 
         <div className="grid gap-4 xl:grid-cols-2">
           <Section
-            title="Where the time went"
-            action={<Segmented size="sm" value={dim} onChange={setDim} options={[{ value: "project", label: "Project" }, { value: "category", label: "Category" }, { value: "task", label: "Task" }, { value: "tag", label: "Tag" }]} />}
+            title={tr("Where the time went")}
+            action={<Segmented size="sm" value={dim} onChange={setDim} options={[{ value: "project", label: tr("Project") }, { value: "category", label: tr("Category") }, { value: "task", label: tr("Task") }, { value: "tag", label: tr("Tag") }]} />}
           >
             <Distribution rows={dist} total={m.total} />
-            {dim === "tag" && dist.length > 0 && <div className="px-3 pb-2 text-xs text-ink-3">A task with several tags counts toward each of them, so tag rows can add up to more than the total.</div>}
+            {dim === "tag" && dist.length > 0 && <div className="px-3 pb-2 text-xs text-ink-3">{tr("A task with several tags counts toward each of them, so tag rows can add up to more than the total.")}</div>}
           </Section>
 
-          <Section title="Most productive hours" action={m.total > 0 ? <span className="text-xs text-ink-2">Peak {String(peak).padStart(2, "0")}:00–{String(peak + 1).padStart(2, "0")}:00</span> : undefined}>
+          <Section title={tr("Most productive hours")} action={m.total > 0 ? <span className="text-xs text-ink-2">{tr("Peak")}{" "}{String(peak).padStart(2, "0")}:00–{String(peak + 1).padStart(2, "0")}:00</span> : undefined}>
             <div className="h-[210px] px-2 py-3">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={hourData} barCategoryGap="18%">
@@ -215,17 +216,17 @@ export function AnalyticsPage() {
           </Section>
         </div>
 
-        <Section title="Estimated vs. actual time — tasks completed in this period" action={m.est.samples ? <span className="tabular text-xs text-ink-2">{fmtDuration(m.est.totalActual)} actual vs {fmtDuration(m.est.totalEstimated)} estimated{m.est.ratio ? ` · ×${m.est.ratio.toFixed(2)}` : ""}</span> : undefined}>
+        <Section title={tr("Estimated vs. actual time — tasks completed in this period")} action={m.est.samples ? <span className="tabular text-xs text-ink-2">{fmtDuration(m.est.totalActual)}{" "}{tr("actual vs")}{" "}{fmtDuration(m.est.totalEstimated)}{" "}{tr("estimated")}{m.est.ratio ? ` · ×${m.est.ratio.toFixed(2)}` : ""}</span> : undefined}>
           {m.estRows.length === 0 ? (
-            <div className="px-3 py-6 text-center text-sm text-ink-2">Complete tasks that have both an estimate and tracked time to see how accurate your estimates are.</div>
+            <div className="px-3 py-6 text-center text-sm text-ink-2">{tr("Complete tasks that have both an estimate and tracked time to see how accurate your estimates are.")}</div>
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-line text-left text-xs text-ink-3">
-                  <th className="px-3 py-1.5 font-medium">Task</th>
-                  <th className="w-24 px-3 py-1.5 text-right font-medium">Estimated</th>
-                  <th className="w-24 px-3 py-1.5 text-right font-medium">Actual</th>
-                  <th className="w-32 px-3 py-1.5 text-right font-medium">Variance</th>
+                <tr className="border-b border-line text-start text-xs text-ink-3">
+                  <th className="px-3 py-1.5 font-medium">{tr("Task")}</th>
+                  <th className="w-24 px-3 py-1.5 text-end font-medium">{tr("Estimated")}</th>
+                  <th className="w-24 px-3 py-1.5 text-end font-medium">{tr("Actual")}</th>
+                  <th className="w-32 px-3 py-1.5 text-end font-medium">{tr("Variance")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -234,9 +235,9 @@ export function AnalyticsPage() {
                   return (
                     <tr key={r.id} className="border-b border-line last:border-0">
                       <td className="max-w-0 truncate px-3 py-1.5">{r.title}</td>
-                      <td className="tabular px-3 py-1.5 text-right text-ink-2">{fmtDuration(r.estimated)}</td>
-                      <td className="tabular px-3 py-1.5 text-right">{fmtDuration(r.actual)}</td>
-                      <td className={cx("tabular px-3 py-1.5 text-right", Math.abs(v) < 60 ? "text-ink-2" : v > 0 ? "text-warn" : "text-ok")}>{Math.abs(v) < 60 ? "on estimate" : `${v > 0 ? "+" : "−"}${fmtDuration(Math.abs(v))} (${Math.round((v / r.estimated) * 100)}%)`}</td>
+                      <td className="tabular px-3 py-1.5 text-end text-ink-2">{fmtDuration(r.estimated)}</td>
+                      <td className="tabular px-3 py-1.5 text-end">{fmtDuration(r.actual)}</td>
+                      <td className={cx("tabular px-3 py-1.5 text-end", Math.abs(v) < 60 ? "text-ink-2" : v > 0 ? "text-warn" : "text-ok")}>{Math.abs(v) < 60 ? tr("on estimate") : `${v > 0 ? "+" : "−"}${fmtDuration(Math.abs(v))} (${Math.round((v / r.estimated) * 100)}%)`}</td>
                     </tr>
                   );
                 })}
@@ -246,7 +247,7 @@ export function AnalyticsPage() {
         </Section>
 
         {habitRows.length > 0 && (
-          <Section title="Habit consistency in this period">
+          <Section title={tr("Habit consistency in this period")}>
             <div className="px-3 py-2">
               {habitRows.map(({ h, c }) => (
                 <div key={h.id} className="flex items-center gap-3 py-1 text-sm">
@@ -254,7 +255,7 @@ export function AnalyticsPage() {
                   <div className="h-2 flex-1 overflow-hidden rounded-sm bg-hover">
                     <div className="h-full rounded-sm" style={{ width: `${(c ?? 0) * 100}%`, background: "var(--chart-1)" }} />
                   </div>
-                  <span className="tabular w-12 shrink-0 text-right">{c == null ? "—" : `${Math.round(c * 100)}%`}</span>
+                  <span className="tabular w-12 shrink-0 text-end">{c == null ? "—" : `${Math.round(c * 100)}%`}</span>
                 </div>
               ))}
             </div>

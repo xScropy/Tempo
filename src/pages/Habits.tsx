@@ -1,6 +1,7 @@
+import { tr } from "@/i18n";
 import { Check, Flame, Moon, MoreHorizontal, Plus, Repeat2, RotateCcw } from "lucide-react";
 import { useMemo, useState } from "react";
-import { addDays, fromDateStr, startOfMonth, startOfWeek, weekDates, weekdayName, type DateStr } from "@/domain/dates";
+import { addDays, fromDateStr, startOfMonth, startOfWeek, weekDates, weekdayName, type DateStr, weekdayMark } from "@/domain/dates";
 import { consistency, currentStreak, dayState, longestStreak, type DayState } from "@/domain/habits";
 import type { Habit } from "@/domain/types";
 import { attempt } from "@/lib/notify";
@@ -10,7 +11,7 @@ import { habitDays } from "@/store/selectors";
 import { confirmDialog, useUi } from "@/store/ui";
 import { Button, Dialog, Empty, Field, IconButton, Input, Menu, PageHeader, Progress, Select, Textarea, cx } from "@/components/ui";
 
-const KIND_LABEL: Record<Habit["kind"], string> = { boolean: "Yes / no", duration: "Duration (minutes)", quantity: "Quantity", sessions: "Number of check-ins" };
+const KIND_LABEL: Record<Habit["kind"], string> = { boolean: tr("Yes / no"), duration: tr("Duration (minutes)"), quantity: tr("Quantity"), sessions: tr("Number of check-ins") };
 const unitOf = (h: Habit) => (h.kind === "duration" ? "min" : h.kind === "sessions" ? "×" : h.unit);
 
 function HabitDialog({ habit, onClose }: { habit?: Habit; onClose: () => void }) {
@@ -28,21 +29,21 @@ function HabitDialog({ habit, onClose }: { habit?: Habit; onClose: () => void })
     <Dialog
       open
       onClose={onClose}
-      title={habit ? "Edit habit" : "New habit"}
+      title={habit ? tr("Edit habit") : tr("New habit")}
       footer={
         <>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{tr("Cancel")}</Button>
           <Button variant="primary" disabled={!f.name.trim()} onClick={() => void save()}>
-            Save
+            {tr("Save")}
           </Button>
         </>
       }
     >
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Name" className="col-span-2">
-          <Input autoFocus value={f.name} placeholder="Morning reading" onChange={(e) => setF({ ...f, name: e.target.value })} />
+        <Field label={tr("Name")} className="col-span-2">
+          <Input autoFocus value={f.name} placeholder={tr("Morning reading")} onChange={(e) => setF({ ...f, name: e.target.value })} />
         </Field>
-        <Field label="Tracked as">
+        <Field label={tr("Tracked as")}>
           <Select value={f.kind} onChange={(e) => setF({ ...f, kind: e.target.value as Habit["kind"], target_value: e.target.value === "boolean" ? 1 : f.target_value })}>
             {(Object.keys(KIND_LABEL) as Habit["kind"][]).map((k) => (
               <option key={k} value={k}>{KIND_LABEL[k]}</option>
@@ -50,18 +51,18 @@ function HabitDialog({ habit, onClose }: { habit?: Habit; onClose: () => void })
           </Select>
         </Field>
         {f.kind !== "boolean" ? (
-          <Field label={f.kind === "duration" ? "Daily target (minutes)" : f.kind === "sessions" ? "Check-ins per day" : "Daily target"}>
+          <Field label={f.kind === "duration" ? tr("Daily target (minutes)") : f.kind === "sessions" ? tr("Check-ins per day") : tr("Daily target")}>
             <Input type="number" min={1} value={f.target_value} onChange={(e) => setF({ ...f, target_value: Number(e.target.value) })} />
           </Field>
         ) : (
           <div />
         )}
         {f.kind === "quantity" && (
-          <Field label="Unit">
-            <Input value={f.unit} placeholder="pages, glasses, km…" onChange={(e) => setF({ ...f, unit: e.target.value })} />
+          <Field label={tr("Unit")}>
+            <Input value={f.unit} placeholder={tr("pages, glasses, km…")} onChange={(e) => setF({ ...f, unit: e.target.value })} />
           </Field>
         )}
-        <Field group label="Days" hint="No days selected means every day. Other days are rest days and never break a streak." className="col-span-2">
+        <Field group label={tr("Days")} hint={tr("No days selected means every day. Other days are rest days and never break a streak.")} className="col-span-2">
           <div className="flex gap-1">
             {order.map((d) => {
               const on = f.weekdays.includes(d);
@@ -73,18 +74,18 @@ function HabitDialog({ habit, onClose }: { habit?: Habit; onClose: () => void })
             })}
           </div>
         </Field>
-        <Field label="Reminder time">
+        <Field label={tr("Reminder time")}>
           <Input type="time" value={f.reminder_time} onChange={(e) => setF({ ...f, reminder_time: e.target.value })} />
         </Field>
-        <Field label="Category">
+        <Field label={tr("Category")}>
           <Select value={f.category_id} onChange={(e) => setF({ ...f, category_id: e.target.value })}>
-            <option value="">None</option>
+            <option value="">{tr("None")}</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </Select>
         </Field>
-        <Field label="Description" className="col-span-2">
+        <Field label={tr("Description")} className="col-span-2">
           <Textarea rows={2} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
         </Field>
       </div>
@@ -129,7 +130,7 @@ function HabitRow({ habit, week, onEdit }: { habit: Habit; week: DateStr[]; onEd
       <div className="min-w-0">
         <div className="truncate font-medium">{habit.name}</div>
         <div className="truncate text-xs text-ink-2">
-          {habit.kind === "boolean" ? "Daily check" : `Target ${habit.target_value} ${unitOf(habit)} a day`}
+          {habit.kind === "boolean" ? tr("Daily check") : tr("Target {0} {1} a day", habit.target_value, unitOf(habit))}
           {habit.weekdays.length > 0 && habit.weekdays.length < 7 ? ` · ${habit.weekdays.slice().sort().map(weekdayName).join(", ")}` : ""}
         </div>
       </div>
@@ -137,13 +138,13 @@ function HabitRow({ habit, week, onEdit }: { habit: Habit; week: DateStr[]; onEd
       <div className="flex items-center gap-2">
         {habit.kind === "boolean" ? (
           <Button size="sm" variant={value >= 1 ? "primary" : "secondary"} icon={<Check size={13} />} onClick={() => click(today)}>
-            {value >= 1 ? "Done" : "Mark done"}
+            {value >= 1 ? tr("Done") : tr("Mark done")}
           </Button>
         ) : habit.kind === "sessions" ? (
           <>
             <span className="tabular text-sm text-ink-2">{value}/{habit.target_value}</span>
             <Button size="sm" variant={value >= habit.target_value ? "primary" : "secondary"} icon={<Plus size={13} />} disabled={value >= habit.target_value} onClick={() => void attempt(() => checkInHabit(habit.id, today, 1))}>
-              Check in
+              {tr("Check in")}
             </Button>
           </>
         ) : (
@@ -156,8 +157,8 @@ function HabitRow({ habit, week, onEdit }: { habit: Habit; week: DateStr[]; onEd
             }}
           >
             <span className="tabular text-sm text-ink-2">{value}/{habit.target_value} {unitOf(habit)}</span>
-            <Input className="!h-7 !w-16" type="number" min={0} step="any" placeholder={`+${unitOf(habit)}`} aria-label={`Add ${unitOf(habit)} for ${habit.name}`} value={amount} onChange={(e) => setAmount(e.target.value)} />
-            <Button size="sm" type="submit" disabled={!(Number(amount) > 0)}>Add</Button>
+            <Input className="!h-7 !w-16" type="number" min={0} step="any" placeholder={`+${unitOf(habit)}`} aria-label={tr("Add {0} for {1}", unitOf(habit), habit.name)} value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <Button size="sm" type="submit" disabled={!(Number(amount) > 0)}>{tr("Add")}</Button>
           </form>
         )}
         {habit.kind !== "boolean" && <Progress value={value / habit.target_value} className="w-14" />}
@@ -174,10 +175,10 @@ function HabitRow({ habit, week, onEdit }: { habit: Habit; week: DateStr[]; onEd
               disabled={d > today}
               onClick={() => click(d)}
               title={`${weekdayName(fromDateStr(d).getDay())} ${d}: ${state === "rest" ? "rest day" : state === "off" ? "not scheduled" : habit.kind === "boolean" ? state : `${day?.value ?? 0}/${habit.target_value} ${unitOf(habit)}`}`}
-              aria-label={`${habit.name} on ${d}: ${state}`}
+              aria-label={tr("{0} on {1}: {2}", habit.name, d, state)}
               className={cx("flex h-7 w-7 items-center justify-center rounded border text-2xs", CELL[state], d === today && "ring-1 ring-ink-3 ring-offset-1 ring-offset-bg")}
             >
-              {state === "done" ? <Check size={12} strokeWidth={3} /> : state === "rest" ? <Moon size={11} /> : state === "partial" && habit.kind !== "boolean" ? day?.value : weekdayName(fromDateStr(d).getDay()).slice(0, 1)}
+              {state === "done" ? <Check size={12} strokeWidth={3} /> : state === "rest" ? <Moon size={11} /> : state === "partial" && habit.kind !== "boolean" ? day?.value : weekdayMark(fromDateStr(d).getDay(), 1)}
             </button>
           );
         })}
@@ -186,25 +187,25 @@ function HabitRow({ habit, week, onEdit }: { habit: Habit; week: DateStr[]; onEd
       <div className="text-xs text-ink-2">
         <div className="flex items-center gap-1">
           <Flame size={12} className={streak > 0 ? "text-warn" : "text-ink-3"} />
-          <span className="tabular font-medium text-ink">{streak}</span> day streak <span className="text-ink-3">· best {best}</span>
+          <span className="tabular font-medium text-ink">{streak}</span>{" "}{tr("day streak")}{" "}<span className="text-ink-3">{tr("· best")}{" "}{best}</span>
         </div>
-        <div className="tabular mt-0.5">Week {wk == null ? "—" : `${Math.round(wk * 100)}%`} · Month {mo == null ? "—" : `${Math.round(mo * 100)}%`}</div>
+        <div className="tabular mt-0.5">{tr("Week")}{" "}{wk == null ? "—" : `${Math.round(wk * 100)}%`}{" "}{tr("· Month")}{" "}{mo == null ? "—" : `${Math.round(mo * 100)}%`}</div>
       </div>
 
       <Menu
         align="end"
         trigger={
-          <IconButton label={`Options for ${habit.name}`}>
+          <IconButton label={tr("Options for {0}", habit.name)}>
             <MoreHorizontal size={15} />
           </IconButton>
         }
         items={[
-          { label: "Edit habit", onSelect: onEdit },
-          { label: "Take a rest day today", icon: <Moon size={13} />, onSelect: () => void attempt(() => restHabitDay(habit.id, today)) },
-          { label: "Clear today", icon: <RotateCcw size={13} />, onSelect: () => void attempt(() => resetHabitDay(habit.id, today)) },
+          { label: tr("Edit habit"), onSelect: onEdit },
+          { label: tr("Take a rest day today"), icon: <Moon size={13} />, onSelect: () => void attempt(() => restHabitDay(habit.id, today)) },
+          { label: tr("Clear today"), icon: <RotateCcw size={13} />, onSelect: () => void attempt(() => resetHabitDay(habit.id, today)) },
           "sep",
-          { label: "Archive", onSelect: () => void attempt(() => archiveHabit(habit.id)) },
-          { label: "Delete with history", danger: true, onSelect: () => void confirmDialog({ title: `Delete "${habit.name}"?`, body: "The habit and its entire history are removed. Archive it instead to keep the history.", confirmLabel: "Delete", danger: true }).then((ok) => ok && attempt(() => deleteHabit(habit.id))) },
+          { label: tr("Archive"), onSelect: () => void attempt(() => archiveHabit(habit.id)) },
+          { label: tr("Delete with history"), danger: true, onSelect: () => void confirmDialog({ title: tr("Delete \"{0}\"?", habit.name), body: tr("The habit and its entire history are removed. Archive it instead to keep the history."), confirmLabel: tr("Delete"), danger: true }).then((ok) => ok && attempt(() => deleteHabit(habit.id))) },
         ]}
       />
     </div>
@@ -220,14 +221,14 @@ export function HabitsPage() {
   const week = weekDates(startOfWeek(today, weekStart));
   return (
     <div className="flex h-full flex-col">
-      <PageHeader title="Habits" subtitle="Routines you repeat. Missed days are just information — rest days never break a streak.">
+      <PageHeader title={tr("Habits")} subtitle={tr("Routines you repeat. Missed days are just information — rest days never break a streak.")}>
         <Button variant="primary" icon={<Plus size={14} />} onClick={() => setDialog("new")}>
-          New habit
+          {tr("New habit")}
         </Button>
       </PageHeader>
       <div className="min-h-0 flex-1 overflow-auto">
         {active.length === 0 ? (
-          <Empty icon={<Repeat2 size={28} />} title="No habits yet" body="Track things you do regularly: a yes/no check, minutes practised, a quantity, or several check-ins a day." action={<Button variant="primary" onClick={() => setDialog("new")}>Create a habit</Button>} />
+          <Empty icon={<Repeat2 size={28} />} title={tr("No habits yet")} body={tr("Track things you do regularly: a yes/no check, minutes practised, a quantity, or several check-ins a day.")} action={<Button variant="primary" onClick={() => setDialog("new")}>{tr("Create a habit")}</Button>} />
         ) : (
           <div className="min-w-[860px]">
             {active.map((h) => (

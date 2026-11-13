@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 import { useState } from "react";
 import { todayStr, weekdayName, weekdayOf } from "@/domain/dates";
 import { describeRule, occurrencesBetween, type RecurrenceRule } from "@/domain/recurrence";
@@ -52,7 +53,7 @@ export function RecurrenceDialog({ task, onClose }: { task: Task; onClose: () =>
 
   const stop = async () => {
     if (!existing) return;
-    if (!(await confirmDialog({ title: "Stop repeating?", body: "Completed occurrences stay in your history. Future open occurrences are removed.", confirmLabel: "Stop repeating", danger: true }))) return;
+    if (!(await confirmDialog({ title: tr("Stop repeating?"), body: tr("Completed occurrences stay in your history. Future open occurrences are removed."), confirmLabel: tr("Stop repeating"), danger: true }))) return;
     if (await attempt(() => endSeries(existing.id))) onClose();
   };
 
@@ -60,38 +61,38 @@ export function RecurrenceDialog({ task, onClose }: { task: Task; onClose: () =>
     <Dialog
       open
       onClose={onClose}
-      title={existing ? "Edit recurring task" : "Repeat task"}
+      title={existing ? tr("Edit recurring task") : tr("Repeat task")}
       width={520}
       footer={
         <>
           {existing && (
-            <Button variant="danger" className="mr-auto" onClick={stop}>
-              Stop repeating
+            <Button variant="danger" className="me-auto" onClick={stop}>
+              {tr("Stop repeating")}
             </Button>
           )}
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{tr("Cancel")}</Button>
           <Button variant="primary" onClick={save}>
-            {existing ? "Save changes" : "Create series"}
+            {existing ? tr("Save changes") : tr("Create series")}
           </Button>
         </>
       }
     >
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Title" className="col-span-2">
+        <Field label={tr("Title")} className="col-span-2">
           <Input value={tpl.title} onChange={(e) => setTpl({ ...tpl, title: e.target.value })} />
         </Field>
-        <Field label="Repeats">
+        <Field label={tr("Repeats")}>
           <Select value={rule.freq} onChange={(e) => set({ freq: e.target.value as RecurrenceRule["freq"] })}>
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
+            <option value="daily">{tr("Daily")}</option>
+            <option value="weekly">{tr("Weekly")}</option>
+            <option value="monthly">{tr("Monthly")}</option>
           </Select>
         </Field>
-        <Field label={`Every … ${rule.freq === "daily" ? "day(s)" : rule.freq === "weekly" ? "week(s)" : "month(s)"}`}>
+        <Field label={tr("Every … {0}", rule.freq === "daily" ? "day(s)" : rule.freq === "weekly" ? "week(s)" : "month(s)")}>
           <Input type="number" min={1} max={365} value={rule.interval} onChange={(e) => set({ interval: Math.max(1, Number(e.target.value) || 1) })} />
         </Field>
         {rule.freq === "weekly" && (
-          <Field group label="On" className="col-span-2">
+          <Field group label={tr("On")} className="col-span-2">
             <div className="flex gap-1">
               {order.map((d) => {
                 const on = rule.weekdays.includes(d);
@@ -111,7 +112,7 @@ export function RecurrenceDialog({ task, onClose }: { task: Task; onClose: () =>
           </Field>
         )}
         {rule.freq === "monthly" && (
-          <Field label="Days of the month" hint="Comma-separated, e.g. 1, 15. Days past the end of a month fall on its last day." className="col-span-2">
+          <Field label={tr("Days of the month")} hint={tr("Comma-separated, e.g. 1, 15. Days past the end of a month fall on its last day.")} className="col-span-2">
             <Input
               value={monthText}
               onChange={(e) => {
@@ -121,45 +122,45 @@ export function RecurrenceDialog({ task, onClose }: { task: Task; onClose: () =>
             />
           </Field>
         )}
-        <Field label="Starts">
+        <Field label={tr("Starts")}>
           <Input type="date" value={rule.start_date} onChange={(e) => e.target.value && set({ start_date: e.target.value })} />
         </Field>
-        <Field label="Ends">
+        <Field label={tr("Ends")}>
           <Select value={ends} onChange={(e) => setEnds(e.target.value as typeof ends)}>
-            <option value="never">Never</option>
-            <option value="date">On a date</option>
-            <option value="count">After a number of times</option>
+            <option value="never">{tr("Never")}</option>
+            <option value="date">{tr("On a date")}</option>
+            <option value="count">{tr("After a number of times")}</option>
           </Select>
         </Field>
         {ends === "date" && (
-          <Field label="End date">
+          <Field label={tr("End date")}>
             <Input type="date" value={rule.end_date ?? ""} min={rule.start_date} onChange={(e) => set({ end_date: e.target.value || null })} />
           </Field>
         )}
         {ends === "count" && (
-          <Field label="Occurrences">
+          <Field label={tr("Occurrences")}>
             <Input type="number" min={1} value={rule.count ?? 10} onChange={(e) => set({ count: Math.max(1, Number(e.target.value) || 1) })} />
           </Field>
         )}
-        <Field label="Time of day (optional)">
+        <Field label={tr("Time of day (optional)")}>
           <Input type="time" value={tpl.scheduled_time ?? ""} onChange={(e) => setTpl({ ...tpl, scheduled_time: e.target.value || null })} />
         </Field>
-        <Field label="Estimate per occurrence">
+        <Field label={tr("Estimate per occurrence")}>
           <DurationInput value={tpl.estimated_seconds ?? null} onChange={(v) => setTpl({ ...tpl, estimated_seconds: v })} />
         </Field>
         {existing && (
-          <Field label="Apply changes to" className="col-span-2">
+          <Field label={tr("Apply changes to")} className="col-span-2">
             <Select value={scope} onChange={(e) => setScope(e.target.value as typeof scope)}>
-              <option value="future">This and future occurrences</option>
-              <option value="all">All open occurrences</option>
+              <option value="future">{tr("This and future occurrences")}</option>
+              <option value="all">{tr("All open occurrences")}</option>
             </Select>
           </Field>
         )}
       </div>
       <div className="mt-3 rounded border border-line bg-raised px-3 py-2 text-sm text-ink-2">
         <div className="font-medium text-ink">{describeRule(effective)}</div>
-        <div className="mt-0.5">{preview.length ? `Next: ${preview.join(" · ")}` : "This rule produces no occurrences."}</div>
-        {existing && <div className="mt-1 text-xs text-ink-3">Completed occurrences and ones you edited individually are never changed. To change a single occurrence, just edit it in the task panel.</div>}
+        <div className="mt-0.5">{preview.length ? tr("Next: {0}", preview.join(" · ")) : tr("This rule produces no occurrences.")}</div>
+        {existing && <div className="mt-1 text-xs text-ink-3">{tr("Completed occurrences and ones you edited individually are never changed. To change a single occurrence, just edit it in the task panel.")}</div>}
       </div>
     </Dialog>
   );

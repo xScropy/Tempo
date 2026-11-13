@@ -1,6 +1,7 @@
+import { hash, tn, tr } from "@/i18n";
 import { CalendarRange, Columns3, Filter, Flag, Grid2x2, Inbox as InboxIcon, List, Plus, Save, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { addDays, dateOfMs, diffDays, fmtDate, fromDateStr, weekdayName } from "@/domain/dates";
+import { addDays, dateOfMs, diffDays, fmtDate, fromDateStr, weekdayMark } from "@/domain/dates";
 import { matchesFilter, quadrant, sortTasks, type FilterContext } from "@/domain/filter";
 import { isOverdue, projectSubtree } from "@/domain/projects";
 import { PRIORITY_LABEL, STATUS_LABEL, TASK_STATUSES, isOpen, type Task, type TaskFilter, type TaskStatus } from "@/domain/types";
@@ -39,7 +40,7 @@ function InlineAdd({ defaults, placeholder = "Add a task and press Enter" }: { d
       <Plus size={15} className="text-ink-3" />
       <input
         value={v}
-        aria-label="Add task"
+        aria-label={tr("Add task")}
         placeholder={placeholder}
         onChange={(e) => setV(e.target.value)}
         onKeyDown={(e) => {
@@ -85,14 +86,14 @@ function Card({ task }: { task: Task }) {
           <PriorityFlag priority={task.priority} className="mt-0.5" />
         </div>
         {(project || task.due_date) && (
-          <div className="mt-1.5 flex items-center gap-2 pl-[22px] text-xs text-ink-2">
+          <div className="mt-1.5 flex items-center gap-2 ps-[22px] text-xs text-ink-2">
             {project && (
               <span className="inline-flex min-w-0 items-center gap-1.5">
                 <ProjectDot project={project} />
                 <span className="truncate">{project.name}</span>
               </span>
             )}
-            {task.due_date && <span className={cx("ml-auto shrink-0", isOverdue(task, today) && "font-medium text-danger")}>{fmtDate(task.due_date, today)}</span>}
+            {task.due_date && <span className={cx("ms-auto shrink-0", isOverdue(task, today) && "font-medium text-danger")}>{fmtDate(task.due_date, today)}</span>}
           </div>
         )}
       </div>
@@ -138,7 +139,7 @@ function Board({ tasks }: { tasks: Task[] }) {
             {list.slice(0, 80).map((t) => (
               <Card key={t.id} task={t} />
             ))}
-            {list.length > 80 && <div className="px-1 text-xs text-ink-3">+{list.length - 80} more — use filters to narrow down</div>}
+            {list.length > 80 && <div className="px-1 text-xs text-ink-3">+{list.length - 80}{" "}{tr("more — use filters to narrow down")}</div>}
           </DropColumn>
         );
       })}
@@ -149,10 +150,10 @@ function Board({ tasks }: { tasks: Task[] }) {
 function Matrix({ tasks }: { tasks: Task[] }) {
   const today = useUi((s) => s.today);
   const quads = [
-    { title: "Urgent and important", hint: "Do first" },
-    { title: "Important, not urgent", hint: "Schedule" },
-    { title: "Urgent, not important", hint: "Delegate or keep short" },
-    { title: "Neither", hint: "Reconsider" },
+    { title: tr("Urgent and important"), hint: tr("Do first") },
+    { title: tr("Important, not urgent"), hint: tr("Schedule") },
+    { title: tr("Urgent, not important"), hint: tr("Delegate or keep short") },
+    { title: tr("Neither"), hint: tr("Reconsider") },
   ];
   // Dropping into a quadrant adjusts the two inputs the matrix is derived from.
   const move = (id: string, q: number) => {
@@ -191,17 +192,17 @@ function Timeline({ tasks }: { tasks: Task[] }) {
   const days = Array.from({ length: 35 }, (_, i) => addDays(start, i));
   const dated = tasks.filter((t) => t.due_date || t.start_date).slice(0, 200);
   const W = 30;
-  if (!dated.length) return <Empty icon={<CalendarRange size={28} />} title="Nothing to place on a timeline" body="Tasks appear here once they have a start or due date." />;
+  if (!dated.length) return <Empty icon={<CalendarRange size={28} />} title={tr("Nothing to place on a timeline")} body={tr("Tasks appear here once they have a start or due date.")} />;
   return (
     <div className="h-full overflow-auto">
       <div style={{ width: 240 + days.length * W }}>
         <div className="sticky top-0 z-10 flex h-9 border-b border-line bg-bg">
-          <div className="sticky left-0 z-10 w-[240px] shrink-0 border-r border-line bg-bg" />
+          <div className="sticky start-0 z-10 w-[240px] shrink-0 border-e border-line bg-bg" />
           {days.map((d) => {
             const dt = fromDateStr(d);
             return (
-              <div key={d} style={{ width: W }} className={cx("shrink-0 border-r border-line text-center text-2xs leading-4", d === today ? "bg-accent/10 font-semibold text-accent" : [0, 6].includes(dt.getDay()) ? "text-ink-3" : "text-ink-2")}>
-                <div>{weekdayName(dt.getDay()).slice(0, 2)}</div>
+              <div key={d} style={{ width: W }} className={cx("shrink-0 border-e border-line text-center text-2xs leading-4", d === today ? "bg-accent/10 font-semibold text-accent" : [0, 6].includes(dt.getDay()) ? "text-ink-3" : "text-ink-2")}>
+                <div>{weekdayMark(dt.getDay())}</div>
                 <div className="tabular">{dt.getDate()}</div>
               </div>
             );
@@ -216,13 +217,13 @@ function Timeline({ tasks }: { tasks: Task[] }) {
           const color = projects.find((p) => p.id === t.project_id)?.color ?? "rgb(var(--ink-3))";
           return (
             <div key={t.id} className="flex h-8 border-b border-line hover:bg-hover/50">
-              <button type="button" onClick={() => openTask(t.id)} className="sticky left-0 z-[5] flex w-[240px] shrink-0 items-center gap-2 truncate border-r border-line bg-bg px-3 text-left text-sm">
+              <button type="button" onClick={() => openTask(t.id)} className="sticky start-0 z-[5] flex w-[240px] shrink-0 items-center gap-2 truncate border-e border-line bg-bg px-3 text-start text-sm">
                 <span className="truncate">{t.title}</span>
               </button>
               <div className="relative flex-1">
-                <div className="absolute inset-y-0 w-px bg-accent/50" style={{ left: diffDays(start, today) * W + W / 2 }} />
+                <div className="absolute inset-y-0 w-px bg-accent/50" style={{ insetInlineStart: diffDays(start, today) * W + W / 2 }} />
                 {visible && (
-                  <button type="button" aria-label={`${t.title}: ${from} to ${to}`} onClick={() => openTask(t.id)} className={cx("absolute top-1.5 h-5 rounded-sm", isOverdue(t, today) && "ring-1 ring-danger")} style={{ left: a * W + 2, width: Math.max(W - 4, (b - a + 1) * W - 4), background: color, opacity: t.status === "completed" ? 0.35 : 0.85 }} />
+                  <button type="button" aria-label={tr("{0}: {1} to {2}", t.title, from, to)} onClick={() => openTask(t.id)} className={cx("absolute top-1.5 h-5 rounded-sm", isOverdue(t, today) && "ring-1 ring-danger")} style={{ insetInlineStart: a * W + 2, width: Math.max(W - 4, (b - a + 1) * W - 4), background: color, opacity: t.status === "completed" ? 0.35 : 0.85 }} />
                 )}
               </div>
             </div>
@@ -247,73 +248,73 @@ function FilterBar({ filter, setFilter, onSave }: { filter: TaskFilter; setFilte
   const active = Object.keys(filter).filter((k) => k !== "sort").length;
   return (
     <div className="flex flex-wrap items-center gap-2 border-b border-line bg-raised px-3 py-2">
-      <Input className="!w-44" placeholder="Filter by text" aria-label="Filter by text" value={filter.text ?? ""} onChange={(e) => set({ text: e.target.value })} />
-      <Select className="!w-40" aria-label="Project" value={filter.project_id ?? ""} onChange={(e) => set({ project_id: e.target.value })}>
-        <option value="">Any project</option>
-        <option value="none">No project</option>
+      <Input className="!w-44" placeholder={tr("Filter by text")} aria-label={tr("Filter by text")} value={filter.text ?? ""} onChange={(e) => set({ text: e.target.value })} />
+      <Select className="!w-40" aria-label={tr("Project")} value={filter.project_id ?? ""} onChange={(e) => set({ project_id: e.target.value })}>
+        <option value="">{tr("Any project")}</option>
+        <option value="none">{tr("No project")}</option>
         <ProjectOptions projects={projects} />
       </Select>
       {categories.length > 0 && (
-        <Select className="!w-36" aria-label="Category" value={filter.category_id ?? ""} onChange={(e) => set({ category_id: e.target.value })}>
-          <option value="">Any category</option>
+        <Select className="!w-36" aria-label={tr("Category")} value={filter.category_id ?? ""} onChange={(e) => set({ category_id: e.target.value })}>
+          <option value="">{tr("Any category")}</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </Select>
       )}
       {tags.length > 0 && (
-        <Select className="!w-32" aria-label="Tag" value={filter.tag_id ?? ""} onChange={(e) => set({ tag_id: e.target.value })}>
-          <option value="">Any tag</option>
+        <Select className="!w-32" aria-label={tr("Tag")} value={filter.tag_id ?? ""} onChange={(e) => set({ tag_id: e.target.value })}>
+          <option value="">{tr("Any tag")}</option>
           {tags.map((t) => (
-            <option key={t.id} value={t.id}>#{t.name}</option>
+            <option key={t.id} value={t.id}>{hash(t.name)}</option>
           ))}
         </Select>
       )}
-      <Select className="!w-36" aria-label="Priority" value={filter.priority ?? ""} onChange={(e) => set({ priority: e.target.value ? Number(e.target.value) : undefined })}>
-        <option value="">Any priority</option>
+      <Select className="!w-36" aria-label={tr("Priority")} value={filter.priority ?? ""} onChange={(e) => set({ priority: e.target.value ? Number(e.target.value) : undefined })}>
+        <option value="">{tr("Any priority")}</option>
         {[1, 2, 3, 4, 5].map((p) => (
           <option key={p} value={p}>{PRIORITY_LABEL[p]}</option>
         ))}
       </Select>
-      <Select className="!w-36" aria-label="Status" value={filter.status ?? ""} onChange={(e) => set({ status: e.target.value as TaskFilter["status"] })}>
-        <option value="">Any status</option>
-        <option value="open">All open</option>
+      <Select className="!w-36" aria-label={tr("Status")} value={filter.status ?? ""} onChange={(e) => set({ status: e.target.value as TaskFilter["status"] })}>
+        <option value="">{tr("Any status")}</option>
+        <option value="open">{tr("All open")}</option>
         {TASK_STATUSES.map((s) => (
           <option key={s} value={s}>{STATUS_LABEL[s]}</option>
         ))}
       </Select>
-      <Select className="!w-36" aria-label="Due" value={filter.due ?? ""} onChange={(e) => set({ due: e.target.value as TaskFilter["due"] })}>
-        <option value="">Any due date</option>
-        <option value="overdue">Overdue</option>
-        <option value="today">Due today</option>
-        <option value="week">Next 7 days</option>
-        <option value="none">No due date</option>
+      <Select className="!w-36" aria-label={tr("Due")} value={filter.due ?? ""} onChange={(e) => set({ due: e.target.value as TaskFilter["due"] })}>
+        <option value="">{tr("Any due date")}</option>
+        <option value="overdue">{tr("Overdue")}</option>
+        <option value="today">{tr("Due today")}</option>
+        <option value="week">{tr("Next 7 days")}</option>
+        <option value="none">{tr("No due date")}</option>
       </Select>
-      <Select className="!w-36" aria-label="Recurrence" value={filter.recurring == null ? "" : String(filter.recurring)} onChange={(e) => set({ recurring: e.target.value === "" ? undefined : e.target.value === "true" })}>
-        <option value="">Recurring or not</option>
-        <option value="true">Recurring only</option>
-        <option value="false">One-off only</option>
+      <Select className="!w-36" aria-label={tr("Recurrence")} value={filter.recurring == null ? "" : String(filter.recurring)} onChange={(e) => set({ recurring: e.target.value === "" ? undefined : e.target.value === "true" })}>
+        <option value="">{tr("Recurring or not")}</option>
+        <option value="true">{tr("Recurring only")}</option>
+        <option value="false">{tr("One-off only")}</option>
       </Select>
-      <Select className="!w-40" aria-label="Sort" value={filter.sort ?? ""} onChange={(e) => set({ sort: e.target.value as TaskFilter["sort"] })}>
-        <option value="">Default order</option>
-        <option value="due">Sort: due date</option>
-        <option value="priority">Sort: priority</option>
-        <option value="created">Sort: newest</option>
-        <option value="estimate">Sort: estimate</option>
-        <option value="actual">Sort: time tracked</option>
-        <option value="title">Sort: title</option>
+      <Select className="!w-40" aria-label={tr("Sort")} value={filter.sort ?? ""} onChange={(e) => set({ sort: e.target.value as TaskFilter["sort"] })}>
+        <option value="">{tr("Default order")}</option>
+        <option value="due">{tr("Sort: due date")}</option>
+        <option value="priority">{tr("Sort: priority")}</option>
+        <option value="created">{tr("Sort: newest")}</option>
+        <option value="estimate">{tr("Sort: estimate")}</option>
+        <option value="actual">{tr("Sort: time tracked")}</option>
+        <option value="title">{tr("Sort: title")}</option>
       </Select>
       {active > 0 && (
         <>
           <Button size="sm" variant="ghost" icon={<X size={12} />} onClick={() => setFilter({})}>
-            Clear
+            {tr("Clear")}
           </Button>
           <Popover
             open={saving}
             onOpenChange={setSaving}
             trigger={
               <Button size="sm" variant="ghost" icon={<Save size={12} />}>
-                Save as view
+                {tr("Save as view")}
               </Button>
             }
           >
@@ -324,8 +325,8 @@ function FilterBar({ filter, setFilter, onSave }: { filter: TaskFilter; setFilte
                 if (name.trim()) (onSave(name), setName(""), setSaving(false));
               }}
             >
-              <Input autoFocus placeholder="View name" value={name} onChange={(e) => setName(e.target.value)} className="!w-44" />
-              <Button variant="primary" type="submit">Save</Button>
+              <Input autoFocus placeholder={tr("View name")} value={name} onChange={(e) => setName(e.target.value)} className="!w-44" />
+              <Button variant="primary" type="submit">{tr("Save")}</Button>
             </form>
           </Popover>
         </>
@@ -381,20 +382,20 @@ export function TasksPage() {
   const list = () => {
     if (!sorted.length) {
       return scope === "today" ? (
-        <Empty title="Nothing due today" body="Add a task above, or pull something in from Upcoming or your Inbox." />
+        <Empty title={tr("Nothing due today")} body={tr("Add a task above, or pull something in from Upcoming or your Inbox.")} />
       ) : (
-        <Empty title="No tasks here" body={Object.keys(filter).length ? "No tasks match the current filters." : "Tasks you add will show up in this view."} />
+        <Empty title={tr("No tasks here")} body={Object.keys(filter).length ? tr("No tasks match the current filters.") : tr("Tasks you add will show up in this view.")} />
       );
     }
     const shown = sorted.slice(0, RENDER_CAP);
-    const more = sorted.length > RENDER_CAP && <div className="px-3 py-2 text-xs text-ink-3">Showing the first {RENDER_CAP} of {sorted.length} tasks. Use filters to narrow the list.</div>;
+    const more = sorted.length > RENDER_CAP && <div className="px-3 py-2 text-xs text-ink-3">{tr("Showing the first")}{" "}{RENDER_CAP}{" "}{tr("of")}{" "}{sorted.length}{" "}{tr("tasks. Use filters to narrow the list.")}</div>;
     if (scope === "today") {
       const overdue = shown.filter((t) => isOverdue(t, today));
       const rest = shown.filter((t) => !isOverdue(t, today));
       return (
         <>
-          {overdue.length > 0 && <Group title="Overdue" tone="danger" count={overdue.length}><TaskList tasks={overdue} draggable /></Group>}
-          {rest.length > 0 && <Group title="Today" count={rest.length}><TaskList tasks={rest} draggable /></Group>}
+          {overdue.length > 0 && <Group title={tr("Overdue")} tone="danger" count={overdue.length}><TaskList tasks={overdue} draggable /></Group>}
+          {rest.length > 0 && <Group title={tr("Today")} count={rest.length}><TaskList tasks={rest} draggable /></Group>}
         </>
       );
     }
@@ -422,41 +423,41 @@ export function TasksPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <PageHeader title="My Tasks" subtitle={`${sorted.length} task${sorted.length === 1 ? "" : "s"}`}>
+      <PageHeader title={tr("My Tasks")} subtitle={tn(sorted.length, "task")}>
         <Segmented
           value={scope}
           onChange={(s) => (setScope(s), setView(null))}
           options={[
-            { value: "today", label: "Today" },
-            { value: "upcoming", label: "Upcoming" },
-            { value: "all", label: "All" },
-            { value: "overdue", label: "Overdue" },
-            { value: "completed", label: "Completed" },
+            { value: "today", label: tr("Today") },
+            { value: "upcoming", label: tr("Upcoming") },
+            { value: "all", label: tr("All") },
+            { value: "overdue", label: tr("Overdue") },
+            { value: "completed", label: tr("Completed") },
           ]}
         />
         <Segmented
           value={layout}
           onChange={setLayout}
           options={[
-            { value: "list", label: <List size={14} />, title: "List" },
-            { value: "board", label: <Columns3 size={14} />, title: "Kanban board" },
-            { value: "priority", label: <Flag size={14} />, title: "By priority" },
-            { value: "matrix", label: <Grid2x2 size={14} />, title: "Eisenhower matrix" },
-            { value: "timeline", label: <CalendarRange size={14} />, title: "Timeline" },
+            { value: "list", label: <List size={14} />, title: tr("List") },
+            { value: "board", label: <Columns3 size={14} />, title: tr("Kanban board") },
+            { value: "priority", label: <Flag size={14} />, title: tr("By priority") },
+            { value: "matrix", label: <Grid2x2 size={14} />, title: tr("Eisenhower matrix") },
+            { value: "timeline", label: <CalendarRange size={14} />, title: tr("Timeline") },
           ]}
         />
-        <IconButton label="Filters" active={showFilter} onClick={() => setShowFilter(!showFilter)}>
+        <IconButton label={tr("Filters")} active={showFilter} onClick={() => setShowFilter(!showFilter)}>
           <Filter size={14} />
         </IconButton>
         <Button variant="primary" icon={<Plus size={14} />} onClick={() => openQuickAdd(defaults)}>
-          New task
+          {tr("New task")}
         </Button>
       </PageHeader>
       {smartViews.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5 border-b border-line px-3 py-1.5">
-          <span className="text-xs text-ink-3">Smart views</span>
+          <span className="text-xs text-ink-3">{tr("Smart views")}</span>
           {smartViews.map((v) => (
-            <ContextMenu key={v.id} items={() => [{ label: "Delete view", danger: true, onSelect: () => void confirmDialog({ title: `Delete the view "${v.name}"?`, confirmLabel: "Delete", danger: true }).then((ok) => ok && attempt(() => deleteSmartView(v.id))) }]}>
+            <ContextMenu key={v.id} items={() => [{ label: tr("Delete view"), danger: true, onSelect: () => void confirmDialog({ title: tr("Delete the view \"{0}\"?", v.name), confirmLabel: tr("Delete"), danger: true }).then((ok) => ok && attempt(() => deleteSmartView(v.id))) }]}>
               <button
                 type="button"
                 onClick={() => {
@@ -495,7 +496,7 @@ export function TasksPage() {
               ) : null;
             })
           ) : (
-            <Empty title="No tasks here" />
+            <Empty title={tr("No tasks here")} />
           ))}
       </div>
     </div>
@@ -507,10 +508,10 @@ export function InboxPage() {
   const inbox = useMemo(() => tasks.filter((t) => t.status === "inbox" && !t.parent_id).sort((a, b) => b.created_at - a.created_at), [tasks]);
   return (
     <div className="flex h-full flex-col">
-      <PageHeader title="Inbox" subtitle="Capture now, organise later. Give an item a project or a date and it leaves the inbox." />
+      <PageHeader title={tr("Inbox")} subtitle={tr("Capture now, organise later. Give an item a project or a date and it leaves the inbox.")} />
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <InlineAdd defaults={{ status: "inbox" }} placeholder="Capture a task, idea or reminder and press Enter" />
-        {inbox.length ? <TaskList tasks={inbox} /> : <Empty icon={<InboxIcon size={28} />} title="Inbox zero" body="Anything you capture without a project or date lands here. Press N anywhere to capture." />}
+        <InlineAdd defaults={{ status: "inbox" }} placeholder={tr("Capture a task, idea or reminder and press Enter")} />
+        {inbox.length ? <TaskList tasks={inbox} /> : <Empty icon={<InboxIcon size={28} />} title={tr("Inbox zero")} body={tr("Anything you capture without a project or date lands here. Press N anywhere to capture.")} />}
       </div>
     </div>
   );

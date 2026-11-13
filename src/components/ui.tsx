@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 import * as Dlg from "@radix-ui/react-dialog";
 import * as Dd from "@radix-ui/react-dropdown-menu";
 import * as Cm from "@radix-ui/react-context-menu";
@@ -68,10 +69,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
 export function Select({ className, children, ...rest }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <span className={cx("relative inline-block w-full", className)}>
-      <select {...rest} className={cx(fieldCls, "appearance-none pr-7")}>
+      <select {...rest} className={cx(fieldCls, "appearance-none pe-7")}>
         {children}
       </select>
-      <ChevronDown size={14} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-ink-3" />
+      <ChevronDown size={14} className="pointer-events-none absolute end-2 top-1/2 -translate-y-1/2 text-ink-3" />
     </span>
   );
 }
@@ -193,7 +194,7 @@ export function Dialog({ open, onClose, title, children, width = 480, footer }: 
           <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
             <Dlg.Title className="text-base font-semibold">{title}</Dlg.Title>
             <Dlg.Close asChild>
-              <IconButton label="Close">
+              <IconButton label={tr("Close")}>
                 <X size={15} />
               </IconButton>
             </Dlg.Close>
@@ -223,7 +224,7 @@ function renderItems(items: MenuItem[], P: typeof Dd | typeof Cm): ReactNode {
           <M.SubTrigger className={itemCls}>
             <span className="flex w-4 justify-center text-ink-3">{it.icon}</span>
             <span className="flex-1">{it.label}</span>
-            <ChevronRight size={13} className="text-ink-3" />
+            <ChevronRight size={13} className="rtl:rotate-180 text-ink-3" />
           </M.SubTrigger>
           <M.Portal>
             <M.SubContent className={menuCls}>{renderItems(it.children, P)}</M.SubContent>
@@ -317,7 +318,7 @@ export function Empty({ icon, title, body, action }: { icon?: ReactNode; title: 
 export function PageHeader({ title, subtitle, children }: { title: ReactNode; subtitle?: ReactNode; children?: ReactNode }) {
   return (
     <header className="no-print flex min-h-[52px] shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-line px-5 py-2">
-      <div className="mr-auto min-w-0">
+      <div className="me-auto min-w-0">
         <h1 className="truncate text-lg font-semibold leading-6">{title}</h1>
         {subtitle && <div className="truncate text-xs text-ink-2">{subtitle}</div>}
       </div>
@@ -374,7 +375,7 @@ export function Markdown({ source, className }: { source: string; className?: st
   const blocks: ReactNode[] = [];
   let list: ReactNode[] = [];
   const flush = () => {
-    if (list.length) blocks.push(<ul key={`l${blocks.length}`} className="my-1 list-disc space-y-0.5 pl-5">{list}</ul>);
+    if (list.length) blocks.push(<ul key={`l${blocks.length}`} className="my-1 list-disc space-y-0.5 ps-5">{list}</ul>);
     list = [];
   };
   source.split("\n").forEach((line, i) => {
@@ -382,8 +383,8 @@ export function Markdown({ source, className }: { source: string; className?: st
     const li = /^\s*[-*]\s+(\[( |x)\]\s+)?(.*)$/.exec(line);
     if (li) {
       list.push(
-        <li key={i} className={li[1] ? "list-none -ml-4" : undefined}>
-          {li[1] && <span className="mr-1.5 font-mono text-ink-3">{li[2] === "x" ? "☑" : "☐"}</span>}
+        <li key={i} className={li[1] ? "list-none -ms-4" : undefined}>
+          {li[1] && <span className="me-1.5 font-mono text-ink-3">{li[2] === "x" ? "☑" : "☐"}</span>}
           {inline(li[3]!, `i${i}`)}
         </li>,
       );

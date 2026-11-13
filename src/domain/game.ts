@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 /**
  * Levels, tokens and daily quests. Everything is derived from real activity
  * with fixed, visible rules — there is no hidden score and nothing to "game"
@@ -28,9 +29,9 @@ export interface Quest {
 
 export function questsFor(day: DayActivity): Quest[] {
   const q = (id: string, label: string, current: number, goal: number): Quest => ({ id, label, current: Math.min(current, goal), goal, done: current >= goal });
-  const out = [q("focus", "Focus for 60 minutes", Math.floor(day.focusSeconds / 60), 60), q("tasks", "Complete 3 tasks", day.tasksCompleted, 3)];
+  const out = [q("focus", tr("Focus for 60 minutes"), Math.floor(day.focusSeconds / 60), 60), q("tasks", tr("Complete 3 tasks"), day.tasksCompleted, 3)];
   // The habit quest only exists on days that have habits to do.
-  if (day.habitsDue > 0) out.push(q("habits", "Do every habit scheduled today", day.habitsDone, day.habitsDue));
+  if (day.habitsDue > 0) out.push(q("habits", tr("Do every habit scheduled today"), day.habitsDone, day.habitsDue));
   return out;
 }
 
@@ -54,7 +55,7 @@ export function levelFor(xp: number): { level: number; into: number; needed: num
   return { level, into: xp - base, needed, fraction: (xp - base) / needed };
 }
 
-const TITLES = ["Beginner", "Apprentice", "Steady", "Focused", "Dedicated", "Disciplined", "Expert", "Master", "Grandmaster", "Legend"];
+const TITLES = [tr("Beginner"), tr("Apprentice"), tr("Steady"), tr("Focused"), tr("Dedicated"), tr("Disciplined"), tr("Expert"), tr("Master"), tr("Grandmaster"), tr("Legend")];
 export const levelTitle = (level: number): string => TITLES[Math.min(TITLES.length - 1, Math.floor((level - 1) / 3))]!;
 
 export interface GameTotals {
@@ -107,16 +108,16 @@ export function achievementsFor(t: GameTotals): Achievement[] {
   const a = (id: string, title: string, description: string, current: number, goal: number): Achievement => ({ id, title, description, current: Math.min(current, goal), goal, unlocked: current >= goal });
   const hours = Math.floor(t.focusSeconds / 3600);
   return [
-    a("first-session", "First step", "Complete your first focus session", t.sessionsCompleted, 1),
-    a("focus-10", "Ten hours in", "Track 10 hours of focus", hours, 10),
-    a("focus-50", "Deep diver", "Track 50 hours of focus", hours, 50),
-    a("focus-200", "Two hundred hours", "Track 200 hours of focus", hours, 200),
-    a("tasks-25", "Getting things done", "Complete 25 tasks", t.tasksCompleted, 25),
-    a("tasks-250", "Finisher", "Complete 250 tasks", t.tasksCompleted, 250),
-    a("streak-7", "One full week", "Focus 7 days in a row", t.bestFocusStreak, 7),
-    a("streak-30", "Unbroken month", "Focus 30 days in a row", t.bestFocusStreak, 30),
-    a("habits-50", "Creature of habit", "Complete habits 50 times", t.habitsDone, 50),
-    a("quests-20", "Quest hunter", "Finish 20 daily quests", t.questsDone, 20),
+    a("first-session", tr("First step"), tr("Complete your first focus session"), t.sessionsCompleted, 1),
+    a("focus-10", tr("Ten hours in"), tr("Track 10 hours of focus"), hours, 10),
+    a("focus-50", tr("Deep diver"), tr("Track 50 hours of focus"), hours, 50),
+    a("focus-200", tr("Two hundred hours"), tr("Track 200 hours of focus"), hours, 200),
+    a("tasks-25", tr("Getting things done"), tr("Complete 25 tasks"), t.tasksCompleted, 25),
+    a("tasks-250", tr("Finisher"), tr("Complete 250 tasks"), t.tasksCompleted, 250),
+    a("streak-7", tr("One full week"), tr("Focus 7 days in a row"), t.bestFocusStreak, 7),
+    a("streak-30", tr("Unbroken month"), tr("Focus 30 days in a row"), t.bestFocusStreak, 30),
+    a("habits-50", tr("Creature of habit"), tr("Complete habits 50 times"), t.habitsDone, 50),
+    a("quests-20", tr("Quest hunter"), tr("Finish 20 daily quests"), t.questsDone, 20),
   ];
 }
 

@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 /**
  * Wire protocol shared by the app (client) and the social server.
  * JSON over WebSocket. Requests carry an `id` and get exactly one reply;
@@ -167,7 +168,7 @@ export interface FeedItem {
 }
 
 export const REACTIONS = ["clap", "fire", "strong", "focus"] as const;
-export const REACTION_LABEL: Record<string, string> = { clap: "Good job", fire: "On fire", strong: "Keep going", focus: "Let's focus" };
+export const REACTION_LABEL: Record<string, string> = { clap: tr("Good job"), fire: tr("On fire"), strong: tr("Keep going"), focus: tr("Let's focus") };
 
 export interface Snapshot {
   serverNow: number;

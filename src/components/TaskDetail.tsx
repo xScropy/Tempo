@@ -1,3 +1,4 @@
+import { hash, tr } from "@/i18n";
 import { ArrowUpRight, Clock, Link2, Play, Plus, Repeat, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { atTime, dateOfMs, fmtDate, fmtDuration, timeOf, todayStr } from "@/domain/dates";
@@ -68,26 +69,26 @@ function Panel({ task }: { task: Task }) {
           )}
         </div>
         <Button size="sm" icon={<Play size={12} />} onClick={() => void attempt(() => startSession({ mode: "pomodoro", taskId: task.id })).then((ok) => ok && navigate("focus"))}>
-          Focus
+          {tr("Focus")}
         </Button>
-        <IconButton label="Delete task" onClick={() => void removeTask(task)}>
+        <IconButton label={tr("Delete task")} onClick={() => void removeTask(task)}>
           <Trash2 size={14} />
         </IconButton>
-        <IconButton label="Close panel" onClick={() => openTask(null)}>
+        <IconButton label={tr("Close panel")} onClick={() => openTask(null)}>
           <X size={15} />
         </IconButton>
       </div>
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-3">
         <CommitInput
-          aria-label="Task title"
+          aria-label={tr("Task title")}
           value={task.title}
           onCommit={(v) => v.trim() && save({ title: v })}
           className={cx("!h-auto border-transparent !px-0 text-lg font-semibold hover:border-line focus:!px-2", task.status === "completed" && "text-ink-2")}
         />
 
         <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-          <Field label="Status">
+          <Field label={tr("Status")}>
             <Select value={task.status} onChange={(e) => save({ status: e.target.value as TaskStatus })}>
               {TASK_STATUSES.map((s) => (
                 <option key={s} value={s}>
@@ -96,7 +97,7 @@ function Panel({ task }: { task: Task }) {
               ))}
             </Select>
           </Field>
-          <Field label="Priority">
+          <Field label={tr("Priority")}>
             <Select value={task.priority} onChange={(e) => save({ priority: Number(e.target.value) })}>
               {[1, 2, 3, 4, 5].map((p) => (
                 <option key={p} value={p}>
@@ -106,16 +107,16 @@ function Panel({ task }: { task: Task }) {
             </Select>
           </Field>
           {!task.parent_id && (
-            <Field label="Project">
+            <Field label={tr("Project")}>
               <Select value={task.project_id ?? ""} onChange={(e) => save({ project_id: e.target.value || null })}>
-                <option value="">No project</option>
+                <option value="">{tr("No project")}</option>
                 <ProjectOptions projects={projects} />
               </Select>
             </Field>
           )}
-          <Field label="Category">
+          <Field label={tr("Category")}>
             <Select value={task.category_id ?? ""} onChange={(e) => save({ category_id: e.target.value || null })}>
-              <option value="">None</option>
+              <option value="">{tr("None")}</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -123,13 +124,13 @@ function Panel({ task }: { task: Task }) {
               ))}
             </Select>
           </Field>
-          <Field label="Start date">
+          <Field label={tr("Start date")}>
             <Input type="date" value={task.start_date ?? ""} onChange={(e) => save({ start_date: e.target.value || null })} />
           </Field>
-          <Field label="Due date">
+          <Field label={tr("Due date")}>
             <Input type="date" value={task.due_date ?? ""} onChange={(e) => save({ due_date: e.target.value || null })} />
           </Field>
-          <Field label="Scheduled">
+          <Field label={tr("Scheduled")}>
             <Input
               type="datetime-local"
               value={toLocalInput(task.scheduled_at)}
@@ -139,13 +140,13 @@ function Panel({ task }: { task: Task }) {
               }}
             />
           </Field>
-          <Field label="Block length">
-            <DurationInput aria-label="Scheduled block length" value={task.scheduled_minutes ? task.scheduled_minutes * 60 : null} placeholder={task.scheduled_at ? "30m" : "—"} onChange={(v) => task.scheduled_at && save({ scheduled_minutes: v ? Math.max(5, Math.round(v / 60)) : 30 })} />
+          <Field label={tr("Block length")}>
+            <DurationInput aria-label={tr("Scheduled block length")} value={task.scheduled_minutes ? task.scheduled_minutes * 60 : null} placeholder={task.scheduled_at ? "30m" : "—"} onChange={(v) => task.scheduled_at && save({ scheduled_minutes: v ? Math.max(5, Math.round(v / 60)) : 30 })} />
           </Field>
-          <Field label="Estimate">
+          <Field label={tr("Estimate")}>
             <DurationInput value={task.estimated_seconds} onChange={(v) => save({ estimated_seconds: v })} />
           </Field>
-          <Field label="Reminder">
+          <Field label={tr("Reminder")}>
             <Input type="datetime-local" value={toLocalInput(task.reminder_at)} onChange={(e) => save({ reminder_at: fromLocalInput(e.target.value) })} />
           </Field>
         </div>
@@ -153,40 +154,40 @@ function Panel({ task }: { task: Task }) {
         <div className="flex items-center gap-4 rounded border border-line bg-raised px-3 py-2 text-sm">
           <Clock size={14} className="text-ink-3" />
           <div>
-            <span className="tabular font-medium">{fmtDuration(actual)}</span> <span className="text-ink-2">tracked</span>
-            {task.estimated_seconds ? <span className="text-ink-2"> of {fmtDuration(task.estimated_seconds)} estimated</span> : null}
+            <span className="tabular font-medium">{fmtDuration(actual)}</span> <span className="text-ink-2">{tr("tracked")}</span>
+            {task.estimated_seconds ? <span className="text-ink-2">{" "}{tr("of")}{" "}{fmtDuration(task.estimated_seconds)}{" "}{tr("estimated")}</span> : null}
           </div>
-          {variance != null && <Badge tone={variance > 0 ? "warn" : "ok"}>{variance > 0 ? `${fmtDuration(variance)} over` : `${fmtDuration(-variance)} under`}</Badge>}
+          {variance != null && <Badge tone={variance > 0 ? "warn" : "ok"}>{variance > 0 ? tr("{0} over", fmtDuration(variance)) : tr("{0} under", fmtDuration(-variance))}</Badge>}
         </div>
 
         <div>
           <div className="mb-1 flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-2">Repeat</span>
+            <span className="text-xs font-medium text-ink-2">{tr("Repeat")}</span>
             {!task.parent_id && (
               <Button size="sm" variant="ghost" icon={<Repeat size={12} />} onClick={() => setRecur(true)}>
-                {series ? "Edit series" : "Make recurring"}
+                {series ? tr("Edit series") : tr("Make recurring")}
               </Button>
             )}
           </div>
           {series && rule ? (
             <div className="text-sm text-ink-2">
               {describeRule(rule)}
-              {task.is_detached ? " · this occurrence was edited on its own" : ""}
+              {task.is_detached ? tr(" · this occurrence was edited on its own") : ""}
             </div>
           ) : (
-            <div className="text-sm text-ink-3">Does not repeat</div>
+            <div className="text-sm text-ink-3">{tr("Does not repeat")}</div>
           )}
         </div>
 
         <div>
-          <div className="mb-1 text-xs font-medium text-ink-2">Tags</div>
+          <div className="mb-1 text-xs font-medium text-ink-2">{tr("Tags")}</div>
           <div className="flex flex-wrap items-center gap-1.5">
             {tagIds.map((id) => {
               const tag = tags.find((t) => t.id === id);
               return tag ? (
                 <Badge key={id}>
-                  #{tag.name}
-                  <button type="button" aria-label={`Remove tag ${tag.name}`} onClick={() => void attempt(() => setTaskTags(task.id, tagIds.filter((x) => x !== id)))} className="hover:text-ink">
+                  {hash(tag.name)}
+                  <button type="button" aria-label={tr("Remove tag {0}", tag.name)} onClick={() => void attempt(() => setTaskTags(task.id, tagIds.filter((x) => x !== id)))} className="hover:text-ink">
                     <X size={10} />
                   </button>
                 </Badge>
@@ -195,8 +196,8 @@ function Panel({ task }: { task: Task }) {
             <input
               list="tempo-tags"
               value={newTag}
-              placeholder="Add tag…"
-              aria-label="Add tag"
+              placeholder={tr("Add tag…")}
+              aria-label={tr("Add tag")}
               onChange={(e) => setNewTag(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key !== "Enter" || !newTag.trim()) return;
@@ -219,7 +220,7 @@ function Panel({ task }: { task: Task }) {
         {!task.parent_id && (
           <div>
             <div className="mb-1 text-xs font-medium text-ink-2">
-              Subtasks {subtasks.length > 0 && <span className="tabular text-ink-3">· {subtasks.filter((s) => s.status === "completed").length}/{subtasks.length}</span>}
+              {tr("Subtasks")}{" "}{subtasks.length > 0 && <span className="tabular text-ink-3">· {subtasks.filter((s) => s.status === "completed").length}/{subtasks.length}</span>}
             </div>
             <div className="rounded border border-line">
               {subtasks.map((s) => (
@@ -229,8 +230,8 @@ function Panel({ task }: { task: Task }) {
                 <Plus size={14} className="text-ink-3" />
                 <input
                   value={newSub}
-                  placeholder="Add subtask"
-                  aria-label="Add subtask"
+                  placeholder={tr("Add subtask")}
+                  aria-label={tr("Add subtask")}
                   onChange={(e) => setNewSub(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && newSub.trim()) void attempt(() => createTask({ title: newSub, parent_id: task.id })).then((ok) => ok && setNewSub(""));
@@ -242,28 +243,28 @@ function Panel({ task }: { task: Task }) {
           </div>
         )}
 
-        <Field label="Description">
-          <CommitInput multiline value={task.description} onCommit={(v) => save({ description: v })} placeholder="What is this task about?" />
+        <Field label={tr("Description")}>
+          <CommitInput multiline value={task.description} onCommit={(v) => save({ description: v })} placeholder={tr("What is this task about?")} />
         </Field>
 
         <div>
           <div className="mb-1 flex items-center justify-between">
-            <span className="text-xs font-medium text-ink-2">Notes</span>
-            <Segmented size="sm" value={notesMode} onChange={setNotesMode} options={[{ value: "edit", label: "Write" }, { value: "preview", label: "Preview" }]} />
+            <span className="text-xs font-medium text-ink-2">{tr("Notes")}</span>
+            <Segmented size="sm" value={notesMode} onChange={setNotesMode} options={[{ value: "edit", label: tr("Write") }, { value: "preview", label: tr("Preview") }]} />
           </div>
           {notesMode === "edit" ? (
-            <CommitInput multiline rows={8} value={task.notes} onCommit={(v) => save({ notes: v })} placeholder={"Markdown supported.\nWhat you accomplished, what you learned, problems, next steps…"} className="font-mono text-sm" />
+            <CommitInput multiline rows={8} value={task.notes} onCommit={(v) => save({ notes: v })} placeholder={tr("Markdown supported.\nWhat you accomplished, what you learned, problems, next steps…")} className="font-mono text-sm" />
           ) : task.notes ? (
-            <button type="button" className="block w-full rounded border border-line px-3 py-2 text-left" onDoubleClick={() => setNotesMode("edit")} title="Double-click to edit">
+            <button type="button" className="block w-full rounded border border-line px-3 py-2 text-start" onDoubleClick={() => setNotesMode("edit")} title={tr("Double-click to edit")}>
               <Markdown source={task.notes} />
             </button>
           ) : (
-            <div className="rounded border border-dashed border-line px-3 py-4 text-center text-sm text-ink-3">No notes yet</div>
+            <div className="rounded border border-dashed border-line px-3 py-4 text-center text-sm text-ink-3">{tr("No notes yet")}</div>
           )}
         </div>
 
         <div>
-          <div className="mb-1 text-xs font-medium text-ink-2">Links</div>
+          <div className="mb-1 text-xs font-medium text-ink-2">{tr("Links")}</div>
           <div className="space-y-1">
             {task.links.map((l, i) => (
               <div key={i} className="flex items-center gap-2 text-sm">
@@ -271,15 +272,15 @@ function Panel({ task }: { task: Task }) {
                 <a href={/^https?:\/\//.test(l.url) ? l.url : undefined} target="_blank" rel="noreferrer noopener" className="selectable min-w-0 flex-1 truncate text-accent hover:underline">
                   {l.label || l.url}
                 </a>
-                <IconButton label="Remove link" className="!h-5 !w-5" onClick={() => save({ links: task.links.filter((_, j) => j !== i) })}>
+                <IconButton label={tr("Remove link")} className="!h-5 !w-5" onClick={() => save({ links: task.links.filter((_, j) => j !== i) })}>
                   <X size={11} />
                 </IconButton>
               </div>
             ))}
             <Input
               value={newLink}
-              placeholder="Paste a URL or reference and press Enter"
-              aria-label="Add link"
+              placeholder={tr("Paste a URL or reference and press Enter")}
+              aria-label={tr("Add link")}
               onChange={(e) => setNewLink(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && newLink.trim()) {
@@ -292,29 +293,29 @@ function Panel({ task }: { task: Task }) {
         </div>
 
         <div>
-          <div className="mb-1 text-xs font-medium text-ink-2">Depends on</div>
+          <div className="mb-1 text-xs font-medium text-ink-2">{tr("Depends on")}</div>
           <div className="space-y-1">
             {myDeps.map((d) => (
               <div key={d.id} className="flex items-center gap-2 text-sm">
-                <button type="button" className={cx("min-w-0 flex-1 truncate text-left hover:underline", d.status === "completed" && "text-ink-3 line-through")} onClick={() => openTask(d.id)}>
+                <button type="button" className={cx("min-w-0 flex-1 truncate text-start hover:underline", d.status === "completed" && "text-ink-3 line-through")} onClick={() => openTask(d.id)}>
                   {d.title}
                 </button>
-                {d.status !== "completed" && d.status !== "cancelled" && <Badge tone="warn">Open</Badge>}
-                <IconButton label="Remove dependency" className="!h-5 !w-5" onClick={() => void attempt(() => setDependency(task.id, d.id, false))}>
+                {d.status !== "completed" && d.status !== "cancelled" && <Badge tone="warn">{tr("Open")}</Badge>}
+                <IconButton label={tr("Remove dependency")} className="!h-5 !w-5" onClick={() => void attempt(() => setDependency(task.id, d.id, false))}>
                   <X size={11} />
                 </IconButton>
               </div>
             ))}
             <Select
               value={depPick}
-              aria-label="Add dependency"
+              aria-label={tr("Add dependency")}
               onChange={(e) => {
                 const id = e.target.value;
                 setDepPick("");
                 if (id) void attempt(() => setDependency(task.id, id, true));
               }}
             >
-              <option value="">Add a task this one waits on…</option>
+              <option value="">{tr("Add a task this one waits on…")}</option>
               {allTasks
                 .filter((t) => t.id !== task.id && !t.parent_id && t.status !== "completed" && t.status !== "cancelled" && !myDeps.some((d) => d.id === t.id) && (!task.project_id || t.project_id === task.project_id))
                 .slice(0, 200)
@@ -330,9 +331,9 @@ function Panel({ task }: { task: Task }) {
         {taskSessions.length > 0 && (
           <div>
             <div className="mb-1 flex items-center justify-between text-xs font-medium text-ink-2">
-              Recent sessions
+              {tr("Recent sessions")}
               <button type="button" className="inline-flex items-center gap-0.5 font-normal hover:text-ink" onClick={() => navigate("focus", "history")}>
-                All <ArrowUpRight size={11} />
+                {tr("All")}{" "}<ArrowUpRight className="rtl:rotate-180" size={11} />
               </button>
             </div>
             <div className="rounded border border-line text-sm">
@@ -341,7 +342,7 @@ function Panel({ task }: { task: Task }) {
                   <span className="w-24 shrink-0 text-ink-2">{fmtDate(dateOfMs(s.started_at), today)}</span>
                   <span className="tabular w-14 shrink-0">{fmtDuration(sessionSeconds(s.id, entries))}</span>
                   <span className="min-w-0 flex-1 truncate text-ink-2">{s.notes || s.objective}</span>
-                  {s.status === "interrupted" && <Badge>Interrupted</Badge>}
+                  {s.status === "interrupted" && <Badge>{tr("Interrupted")}</Badge>}
                 </div>
               ))}
             </div>

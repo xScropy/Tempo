@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 import { isTauri } from "@/db/driver";
 import { toast } from "./notify";
 
@@ -10,7 +11,7 @@ export async function saveFile(name: string, content: string, mime: string): Pro
     const path = await save({ defaultPath: name, filters: [{ name: ext.toUpperCase(), extensions: [ext] }] });
     if (!path) return false;
     await writeTextFile(path, content);
-    toast("Saved", path, "ok");
+    toast(tr("Saved"), path, "ok");
     return true;
   }
   const url = URL.createObjectURL(new Blob([content], { type: mime }));

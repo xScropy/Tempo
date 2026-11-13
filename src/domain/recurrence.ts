@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 import { addDays, addMonths, daysInMonth, diffDays, startOfMonth, startOfWeek, weekdayOf, type DateStr } from "./dates";
 
 export interface RecurrenceRule {
@@ -79,7 +80,7 @@ export function occurrencesBetween(rule: RecurrenceRule, from: DateStr, to: Date
   return out;
 }
 
-const WD = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WD = [tr("Sun"), tr("Mon"), tr("Tue"), tr("Wed"), tr("Thu"), tr("Fri"), tr("Sat")];
 
 export function describeRule(rule: RecurrenceRule): string {
   const n = rule.interval;

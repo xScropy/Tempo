@@ -3,6 +3,12 @@
 @tailwind utilities;
 
 :root {
+  --font-ui: "Segoe UI Variable Text";
+  --fs-2xs: 11px; --lh-2xs: 14px;
+  --fs-xs: 12px; --lh-xs: 16px;
+  --fs-sm: 13px; --lh-sm: 18px;
+  --fs-base: 14px; --lh-base: 20px;
+  --fs-lg: 16px; --lh-lg: 22px;
   --bg: 250 250 249;
   --surface: 255 255 255;
   --raised: 244 244 242;
@@ -33,7 +39,7 @@
   --ink-2: 172 172 166;
   --ink-3: 138 138 132;
   --accent: 92 190 164;
-  --accent-ink: 10 28 23;
+  --accent-ink: 16 16 15;
   --danger: 238 116 106;
   --warn: 226 168 84;
   --ok: 112 198 144;
@@ -109,3 +115,36 @@ input:focus-visible, textarea:focus-visible, select:focus-visible { outline: non
 
 @keyframes flame { 0%, 100% { transform: scale(1) rotate(-2deg); } 50% { transform: scale(1.12) rotate(2deg); } }
 .flame { animation: flame 1.6s ease-in-out infinite; transform-origin: 50% 90%; }
+
+/* ---- Arabic ------------------------------------------------------------------ */
+/* Arabic letterforms need a touch more size and leading to read as comfortably as Latin at the same nominal size. */
+html[lang="ar"] {
+  --font-ui: "IBM Plex Sans Arabic";
+  --fs-2xs: 12px; --lh-2xs: 17px;
+  --fs-xs: 13px; --lh-xs: 19px;
+  --fs-sm: 14px; --lh-sm: 21px;
+  --fs-base: 15px; --lh-base: 23px;
+  --fs-lg: 17px; --lh-lg: 26px;
+}
+/* Letter-spacing breaks the joins between Arabic letters, and there is no upper case. */
+html[lang="ar"] * { letter-spacing: 0 !important; text-transform: none !important; }
+html[lang="ar"] .font-mono, html[lang="ar"] code, html[lang="ar"] kbd { font-family: "Cascadia Mono", "JetBrains Mono", ui-monospace, Consolas, monospace; }
+
+/* ---- accent themes ------------------------------------------------------------- */
+/* Each accent is checked for at least 4.5:1 contrast against its own text colour, in light and in dark. */
+[data-accent="green"] { --accent: 30 120 58; }
+[data-accent="blue"] { --accent: 33 94 186; }
+[data-accent="pink"] { --accent: 199 36 121; }
+[data-accent="rose"] { --accent: 150 22 74; }
+[data-accent="brown"] { --accent: 122 74 43; }
+[data-accent="purple"] { --accent: 108 62 190; }
+[data-accent="orange"] { --accent: 176 80 8; }
+[data-accent="graphite"] { --accent: 62 62 60; }
+.dark[data-accent="green"] { --accent: 112 204 134; }
+.dark[data-accent="blue"] { --accent: 122 172 246; }
+.dark[data-accent="pink"] { --accent: 245 146 192; }
+.dark[data-accent="rose"] { --accent: 236 112 160; }
+.dark[data-accent="brown"] { --accent: 208 164 124; }
+.dark[data-accent="purple"] { --accent: 178 154 246; }
+.dark[data-accent="orange"] { --accent: 240 162 92; }
+.dark[data-accent="graphite"] { --accent: 206 206 200; }

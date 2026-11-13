@@ -1,3 +1,4 @@
+import { tn, tr } from "@/i18n";
 import { MoreHorizontal, Play, Plus, Target } from "lucide-react";
 import { useMemo, useState } from "react";
 import { fmtDate, fmtDuration } from "@/domain/dates";
@@ -22,36 +23,36 @@ function TargetDialog({ target, onClose }: { target?: TimeTarget; onClose: () =>
     <Dialog
       open
       onClose={onClose}
-      title={target ? "Edit weekly target" : "New weekly time target"}
+      title={target ? tr("Edit weekly target") : tr("New weekly time target")}
       footer={
         <>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{tr("Cancel")}</Button>
           <Button variant="primary" disabled={!f.name.trim() || !f.weekly} onClick={() => void save()}>
-            Save
+            {tr("Save")}
           </Button>
         </>
       }
     >
-      <p className="mb-3 text-sm text-ink-2">An activity you want to give a certain amount of time each week, without fixing when. Any focus session or time entry assigned to it counts.</p>
+      <p className="mb-3 text-sm text-ink-2">{tr("An activity you want to give a certain amount of time each week, without fixing when. Any focus session or time entry assigned to it counts.")}</p>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Activity" className="col-span-2">
-          <Input autoFocus value={f.name} placeholder="English learning" onChange={(e) => setF({ ...f, name: e.target.value })} />
+        <Field label={tr("Activity")} className="col-span-2">
+          <Input autoFocus value={f.name} placeholder={tr("English learning")} onChange={(e) => setF({ ...f, name: e.target.value })} />
         </Field>
-        <Field label="Weekly target">
+        <Field label={tr("Weekly target")}>
           <DurationInput value={f.weekly} onChange={(v) => setF({ ...f, weekly: v })} placeholder="e.g. 5h" />
         </Field>
-        <Field label="Preferred sessions per week">
-          <Input type="number" min={1} max={7} value={f.days ?? ""} placeholder="Flexible" onChange={(e) => setF({ ...f, days: e.target.value ? Math.min(7, Math.max(1, Number(e.target.value))) : null })} />
+        <Field label={tr("Preferred sessions per week")}>
+          <Input type="number" min={1} max={7} value={f.days ?? ""} placeholder={tr("Flexible")} onChange={(e) => setF({ ...f, days: e.target.value ? Math.min(7, Math.max(1, Number(e.target.value))) : null })} />
         </Field>
-        <Field label="Minimum session">
+        <Field label={tr("Minimum session")}>
           <DurationInput value={f.min} onChange={(v) => setF({ ...f, min: v })} placeholder="e.g. 1h" />
         </Field>
-        <Field label="Maximum session">
+        <Field label={tr("Maximum session")}>
           <DurationInput value={f.max} onChange={(v) => setF({ ...f, max: v })} placeholder="e.g. 3h" />
         </Field>
-        <Field label="Category" className="col-span-2">
+        <Field label={tr("Category")} className="col-span-2">
           <Select value={f.category_id} onChange={(e) => setF({ ...f, category_id: e.target.value })}>
-            <option value="">None</option>
+            <option value="">{tr("None")}</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
@@ -62,8 +63,8 @@ function TargetDialog({ target, onClose }: { target?: TimeTarget; onClose: () =>
   );
 }
 
-const METRIC_LABEL: Record<Goal["metric"], string> = { focus_time: "Focus time (hours)", tasks_completed: "Tasks completed", sessions: "Completed focus sessions", manual: "Updated by hand" };
-const PERIOD_LABEL: Record<Goal["period"], string> = { daily: "Every day", weekly: "Every week", monthly: "Every month", yearly: "Every year", custom: "Fixed date range" };
+const METRIC_LABEL: Record<Goal["metric"], string> = { focus_time: tr("Focus time (hours)"), tasks_completed: tr("Tasks completed"), sessions: tr("Completed focus sessions"), manual: tr("Updated by hand") };
+const PERIOD_LABEL: Record<Goal["period"], string> = { daily: tr("Every day"), weekly: tr("Every week"), monthly: tr("Every month"), yearly: tr("Every year"), custom: tr("Fixed date range") };
 
 function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: () => void }) {
   const projects = useData((s) => s.projects);
@@ -76,31 +77,31 @@ function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: () => void }) {
     <Dialog
       open
       onClose={onClose}
-      title={goal ? "Edit goal" : "New goal"}
+      title={goal ? tr("Edit goal") : tr("New goal")}
       footer={
         <>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{tr("Cancel")}</Button>
           <Button variant="primary" disabled={!f.title.trim()} onClick={() => void save()}>
-            Save
+            {tr("Save")}
           </Button>
         </>
       }
     >
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Goal" className="col-span-2">
-          <Input autoFocus value={f.title} placeholder="Complete 20 hours of legal research this month" onChange={(e) => setF({ ...f, title: e.target.value })} />
+        <Field label={tr("Goal")} className="col-span-2">
+          <Input autoFocus value={f.title} placeholder={tr("Complete 20 hours of legal research this month")} onChange={(e) => setF({ ...f, title: e.target.value })} />
         </Field>
-        <Field label="Measured by">
+        <Field label={tr("Measured by")}>
           <Select value={f.metric} onChange={(e) => setF({ ...f, metric: e.target.value as Goal["metric"] })}>
             {(Object.keys(METRIC_LABEL) as Goal["metric"][]).map((m) => (
               <option key={m} value={m}>{METRIC_LABEL[m]}</option>
             ))}
           </Select>
         </Field>
-        <Field label="Target">
+        <Field label={tr("Target")}>
           <Input type="number" min={0} step="any" value={f.target_value} onChange={(e) => setF({ ...f, target_value: Number(e.target.value) })} />
         </Field>
-        <Field label="Period" className="col-span-2">
+        <Field label={tr("Period")} className="col-span-2">
           <Select value={f.period} onChange={(e) => setF({ ...f, period: e.target.value as Goal["period"] })}>
             {(Object.keys(PERIOD_LABEL) as Goal["period"][]).map((p) => (
               <option key={p} value={p}>{PERIOD_LABEL[p]}</option>
@@ -109,25 +110,25 @@ function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: () => void }) {
         </Field>
         {f.period === "custom" && (
           <>
-            <Field label="From">
+            <Field label={tr("From")}>
               <Input type="date" value={f.start_date} onChange={(e) => setF({ ...f, start_date: e.target.value })} />
             </Field>
-            <Field label="Until (deadline)">
+            <Field label={tr("Until (deadline)")}>
               <Input type="date" value={f.end_date} onChange={(e) => setF({ ...f, end_date: e.target.value })} />
             </Field>
           </>
         )}
         {f.metric !== "manual" && (
           <>
-            <Field label="Only count this project">
+            <Field label={tr("Only count this project")}>
               <Select value={f.project_id} onChange={(e) => setF({ ...f, project_id: e.target.value })}>
-                <option value="">All work</option>
+                <option value="">{tr("All work")}</option>
                 <ProjectOptions projects={projects} />
               </Select>
             </Field>
-            <Field label="Only count this category">
+            <Field label={tr("Only count this category")}>
               <Select value={f.category_id} onChange={(e) => setF({ ...f, category_id: e.target.value })}>
-                <option value="">Any</option>
+                <option value="">{tr("Any")}</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
@@ -149,13 +150,13 @@ export function WeeklyBar({ name, target, actual, sub, action }: { name: string;
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="truncate font-medium">{name}</span>
-          {st.met ? <Badge tone="ok">Reached</Badge> : st.onTrack ? <Badge tone="accent">On track</Badge> : <Badge tone="warn">Behind pace</Badge>}
+          {st.met ? <Badge tone="ok">{tr("Reached")}</Badge> : st.onTrack ? <Badge tone="accent">{tr("On track")}</Badge> : <Badge tone="warn">{tr("Behind pace")}</Badge>}
         </div>
         <Progress value={st.progress} tone={st.met ? "ok" : st.onTrack ? "accent" : "warn"} className="mt-1.5" />
         <div className="tabular mt-1 text-xs text-ink-2">
-          {fmtDuration(actual)} of {fmtDuration(target)}
-          {!st.met && ` · ${fmtDuration(st.remainingSeconds)} left · ${fmtDuration(st.neededPerDaySeconds)}/day over ${st.daysLeft} day${st.daysLeft === 1 ? "" : "s"}`}
-          {` · avg ${fmtDuration(st.averagePerDaySeconds)}/day`}
+          {fmtDuration(actual)}{" "}{tr("of")}{" "}{fmtDuration(target)}
+          {!st.met && ` · ${tr("{0} left · {1}/day over {2}", fmtDuration(st.remainingSeconds), fmtDuration(st.neededPerDaySeconds), tn(st.daysLeft, "day"))}`}
+          {tr(" · avg {0}/day", fmtDuration(st.averagePerDaySeconds))}
           {sub ? ` · ${sub}` : ""}
         </div>
       </div>
@@ -182,18 +183,18 @@ export function GoalsPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <PageHeader title="Goals" subtitle="Weekly time targets and goals, measured from what you actually tracked.">
+      <PageHeader title={tr("Goals")} subtitle={tr("Weekly time targets and goals, measured from what you actually tracked.")}>
         <Button icon={<Plus size={14} />} onClick={() => setTargetDlg("new")}>
-          Weekly target
+          {tr("Weekly target")}
         </Button>
         <Button variant="primary" icon={<Plus size={14} />} onClick={() => setGoalDlg("new")}>
-          Goal
+          {tr("Goal")}
         </Button>
       </PageHeader>
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
-        <Section title={`Weekly time targets · week of ${fmtDate(week.start, "")}`}>
+        <Section title={tr("Weekly time targets · week of {0}", fmtDate(week.start, ""))}>
           {active.length === 0 && projectTargets.length === 0 && (
-            <Empty icon={<Target size={26} />} title="No weekly targets" body='Set a number of hours per week for an activity ("International Law: 10h") without fixing a schedule. Projects can have a weekly target too.' action={<Button onClick={() => setTargetDlg("new")}>Add a weekly target</Button>} />
+            <Empty icon={<Target size={26} />} title={tr("No weekly targets")} body={tr("Set a number of hours per week for an activity (\"International Law: 10h\") without fixing a schedule. Projects can have a weekly target too.")} action={<Button onClick={() => setTargetDlg("new")}>{tr("Add a weekly target")}</Button>} />
           )}
           {active.map((t) => (
             <WeeklyBar
@@ -205,18 +206,18 @@ export function GoalsPage() {
               action={
                 <div className="flex items-center gap-1">
                   <Button size="sm" icon={<Play size={12} />} onClick={() => void attempt(() => startSession({ mode: "stopwatch", targetId: t.id })).then((ok) => ok && navigate("focus"))}>
-                    Start
+                    {tr("Start")}
                   </Button>
                   <Menu
                     align="end"
                     trigger={
-                      <IconButton label={`Options for ${t.name}`}>
+                      <IconButton label={tr("Options for {0}", t.name)}>
                         <MoreHorizontal size={15} />
                       </IconButton>
                     }
                     items={[
-                      { label: "Edit", onSelect: () => setTargetDlg(t) },
-                      { label: "Archive", danger: true, onSelect: () => void confirmDialog({ title: `Archive "${t.name}"?`, body: "Time already tracked stays in your reports.", confirmLabel: "Archive" }).then((ok) => ok && attempt(() => archiveTarget(t.id))) },
+                      { label: tr("Edit"), onSelect: () => setTargetDlg(t) },
+                      { label: tr("Archive"), danger: true, onSelect: () => void confirmDialog({ title: tr("Archive \"{0}\"?", t.name), body: tr("Time already tracked stays in your reports."), confirmLabel: tr("Archive") }).then((ok) => ok && attempt(() => archiveTarget(t.id))) },
                     ]}
                   />
                 </div>
@@ -224,12 +225,12 @@ export function GoalsPage() {
             />
           ))}
           {projectTargets.map((p) => (
-            <WeeklyBar key={p.id} name={p.name} target={p.weekly_target_seconds!} actual={projectSeconds(p.id, projects, entries, week.from, week.to)} sub="project" action={<Button size="sm" variant="ghost" onClick={() => navigate("projects", p.id)}>Open</Button>} />
+            <WeeklyBar key={p.id} name={p.name} target={p.weekly_target_seconds!} actual={projectSeconds(p.id, projects, entries, week.from, week.to)} sub={tr("project")} action={<Button size="sm" variant="ghost" onClick={() => navigate("projects", p.id)}>{tr("Open")}</Button>} />
           ))}
         </Section>
 
-        <Section title="Goals">
-          {goals.length === 0 && <Empty title="No goals yet" body="Goals can count focus hours, completed tasks or completed sessions over a day, week, month, year or a fixed range — optionally limited to one project." action={<Button onClick={() => setGoalDlg("new")}>Add a goal</Button>} />}
+        <Section title={tr("Goals")}>
+          {goals.length === 0 && <Empty title={tr("No goals yet")} body={tr("Goals can count focus hours, completed tasks or completed sessions over a day, week, month, year or a fixed range — optionally limited to one project.")} action={<Button onClick={() => setGoalDlg("new")}>{tr("Add a goal")}</Button>} />}
           {goals.map((g) => {
             const p = goalProgress(g, ctx, today);
             const fmt = (n: number) => (p.unit === "h" ? `${Math.round(n * 10) / 10}h` : `${Math.round(n * 100) / 100}${p.unit ? ` ${p.unit}` : ""}`);
@@ -238,11 +239,11 @@ export function GoalsPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="truncate font-medium">{g.title}</span>
-                    {p.fraction >= 1 && <Badge tone="ok">Achieved</Badge>}
+                    {p.fraction >= 1 && <Badge tone="ok">{tr("Achieved")}</Badge>}
                   </div>
                   <Progress value={p.fraction} tone={p.fraction >= 1 ? "ok" : "accent"} className="mt-1.5" />
                   <div className="tabular mt-1 text-xs text-ink-2">
-                    {fmt(p.current)} of {fmt(p.target)} · {PERIOD_LABEL[g.period].toLowerCase()} ({fmtDate(p.start, today)} – {fmtDate(p.end, today)})
+                    {fmt(p.current)}{" "}{tr("of")}{" "}{fmt(p.target)} · {PERIOD_LABEL[g.period].toLowerCase()} ({fmtDate(p.start, today)} – {fmtDate(p.end, today)})
                     {g.project_id ? ` · ${projects.find((x) => x.id === g.project_id)?.name ?? ""}` : ""}
                   </div>
                 </div>
@@ -255,13 +256,13 @@ export function GoalsPage() {
                 <Menu
                   align="end"
                   trigger={
-                    <IconButton label={`Options for ${g.title}`}>
+                    <IconButton label={tr("Options for {0}", g.title)}>
                       <MoreHorizontal size={15} />
                     </IconButton>
                   }
                   items={[
-                    { label: "Edit", onSelect: () => setGoalDlg(g) },
-                    { label: "Delete", danger: true, onSelect: () => void confirmDialog({ title: `Delete the goal "${g.title}"?`, confirmLabel: "Delete", danger: true }).then((ok) => ok && attempt(() => deleteGoal(g.id))) },
+                    { label: tr("Edit"), onSelect: () => setGoalDlg(g) },
+                    { label: tr("Delete"), danger: true, onSelect: () => void confirmDialog({ title: tr("Delete the goal \"{0}\"?", g.title), confirmLabel: tr("Delete"), danger: true }).then((ok) => ok && attempt(() => deleteGoal(g.id))) },
                   ]}
                 />
               </div>

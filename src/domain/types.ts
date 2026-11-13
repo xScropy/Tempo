@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 import { z } from "zod";
 import type { DateStr } from "./dates";
 import type { RecurrenceRule } from "./recurrence";
@@ -5,18 +6,18 @@ import type { RecurrenceRule } from "./recurrence";
 export const TASK_STATUSES = ["inbox", "not_started", "planned", "in_progress", "on_hold", "completed", "cancelled"] as const;
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 export const STATUS_LABEL: Record<TaskStatus, string> = {
-  inbox: "Inbox",
-  not_started: "Not started",
-  planned: "Planned",
-  in_progress: "In progress",
-  on_hold: "On hold",
-  completed: "Completed",
-  cancelled: "Cancelled",
+  inbox: tr("Inbox"),
+  not_started: tr("Not started"),
+  planned: tr("Planned"),
+  in_progress: tr("In progress"),
+  on_hold: tr("On hold"),
+  completed: tr("Completed"),
+  cancelled: tr("Cancelled"),
 };
-export const PRIORITY_LABEL: Record<number, string> = { 1: "Critical", 2: "High", 3: "Medium", 4: "Low", 5: "No priority" };
+export const PRIORITY_LABEL: Record<number, string> = { 1: tr("Critical"), 2: tr("High"), 3: tr("Medium"), 4: tr("Low"), 5: tr("No priority") };
 export const PROJECT_STATUSES = ["planned", "active", "on_hold", "completed", "cancelled"] as const;
 export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
-export const PROJECT_STATUS_LABEL: Record<ProjectStatus, string> = { planned: "Planned", active: "Active", on_hold: "On hold", completed: "Completed", cancelled: "Cancelled" };
+export const PROJECT_STATUS_LABEL: Record<ProjectStatus, string> = { planned: tr("Planned"), active: tr("Active"), on_hold: tr("On hold"), completed: tr("Completed"), cancelled: tr("Cancelled") };
 
 export const isOpen = (t: { status: string }) => t.status !== "completed" && t.status !== "cancelled";
 
@@ -264,7 +265,7 @@ const seconds = z.number().int().min(0).max(100_000 * 3600).nullable().optional(
 const id = z.string().min(1).nullable().optional();
 
 export const taskInput = z.object({
-  title: z.string().trim().min(1, "A task needs a title").max(500),
+  title: z.string().trim().min(1, tr("A task needs a title")).max(500),
   description: z.string().max(20_000).optional(),
   notes: z.string().max(200_000).optional(),
   status: z.enum(TASK_STATUSES).optional(),
@@ -283,7 +284,7 @@ export const taskInput = z.object({
 export type TaskInput = z.infer<typeof taskInput>;
 
 export const projectInput = z.object({
-  name: z.string().trim().min(1, "A project needs a name").max(200),
+  name: z.string().trim().min(1, tr("A project needs a name")).max(200),
   parent_id: id,
   description: z.string().max(20_000).optional(),
   notes: z.string().max(200_000).optional(),
@@ -310,12 +311,12 @@ export const ruleInput = z
     end_date: dateStr.nullable(),
     count: z.number().int().min(1).max(10_000).nullable(),
   })
-  .refine((r) => !r.end_date || r.end_date >= r.start_date, "The end date is before the start date");
+  .refine((r) => !r.end_date || r.end_date >= r.start_date, tr("The end date is before the start date"));
 
 export const targetInput = z.object({
-  name: z.string().trim().min(1, "Name the activity").max(200),
+  name: z.string().trim().min(1, tr("Name the activity")).max(200),
   category_id: id,
-  weekly_seconds: z.number().int().min(60, "Set a weekly target").max(168 * 3600),
+  weekly_seconds: z.number().int().min(60, tr("Set a weekly target")).max(168 * 3600),
   preferred_days: z.number().int().min(1).max(7).nullable().optional(),
   min_session_seconds: seconds,
   max_session_seconds: seconds,
@@ -332,13 +333,13 @@ export const entryInput = z
     target_id: id,
     description: z.string().max(5000).optional(),
   })
-  .refine((e) => e.ended_at > e.started_at, "The end must be after the start")
-  .refine((e) => e.ended_at - e.started_at <= 24 * 3600_000, "A single entry cannot be longer than 24 hours");
+  .refine((e) => e.ended_at > e.started_at, tr("The end must be after the start"))
+  .refine((e) => e.ended_at - e.started_at <= 24 * 3600_000, tr("A single entry cannot be longer than 24 hours"));
 export type EntryInput = z.infer<typeof entryInput>;
 
 export const eventInput = z
   .object({
-    title: z.string().trim().min(1, "An event needs a title").max(300),
+    title: z.string().trim().min(1, tr("An event needs a title")).max(300),
     description: z.string().max(5000).optional(),
     kind: z.enum(["event", "meeting", "focus_block", "personal"]).optional(),
     start_at: z.number().int(),
@@ -347,11 +348,11 @@ export const eventInput = z
     target_id: id,
     reminder_minutes: z.number().int().min(0).max(7 * 24 * 60).nullable().optional(),
   })
-  .refine((e) => e.end_at > e.start_at, "The end must be after the start");
+  .refine((e) => e.end_at > e.start_at, tr("The end must be after the start"));
 export type EventInput = z.infer<typeof eventInput>;
 
 export const habitInput = z.object({
-  name: z.string().trim().min(1, "A habit needs a name").max(200),
+  name: z.string().trim().min(1, tr("A habit needs a name")).max(200),
   description: z.string().max(5000).optional(),
   category_id: id,
   kind: z.enum(["boolean", "duration", "quantity", "sessions"]),
@@ -363,7 +364,7 @@ export const habitInput = z.object({
 export type HabitInput = z.infer<typeof habitInput>;
 
 export const goalInput = z.object({
-  title: z.string().trim().min(1, "A goal needs a title").max(300),
+  title: z.string().trim().min(1, tr("A goal needs a title")).max(300),
   period: z.enum(["daily", "weekly", "monthly", "yearly", "custom"]),
   metric: z.enum(["focus_time", "tasks_completed", "sessions", "manual"]),
   target_value: z.number().positive(),

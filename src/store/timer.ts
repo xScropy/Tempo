@@ -1,3 +1,4 @@
+import { tr } from "@/i18n";
 import { create } from "zustand";
 import { db, type Statement } from "@/db/driver";
 import { deleteStmt, insertStmt, newId, updateStmt } from "@/db/sql";
@@ -107,7 +108,7 @@ export async function startSession(config: StartConfig): Promise<void> {
   if (useTimer.getState().timer) await stopSession();
   const s = data().settings;
   const minutes = config.mode === "stopwatch" ? null : (config.minutes ?? (config.mode === "deep" ? s.deepWorkMin : s.focusMin));
-  if (minutes != null && !(minutes >= 1 && minutes <= 720)) throw new Error("Session length must be between 1 and 720 minutes");
+  if (minutes != null && !(minutes >= 1 && minutes <= 720)) throw new Error(tr("Session length must be between 1 and 720 minutes"));
   await beginFocus(config.mode, minutes == null ? null : minutes * 60_000, resolveContext(config), 0);
 }
 
@@ -141,7 +142,7 @@ async function finish(reached: boolean): Promise<void> {
     await db().execute(persistStmt(null).sql, persistStmt(null).params).catch(() => undefined);
     useTimer.setState({ timer: null, gap: null });
     await reload(["time_entries", "focus_sessions"]).catch(() => undefined);
-    throw new Error(`The session could not be saved and the timer was reset. (${e instanceof Error ? e.message : String(e)})`);
+    throw new Error(tr("The session could not be saved and the timer was reset. ({0})", e instanceof Error ? e.message : String(e)));
   }
 }
 
@@ -158,7 +159,7 @@ async function finishUnsafe(reached: boolean): Promise<void> {
       useTimer.setState({ timer: null });
       await beginFocus("pomodoro", s.focusMin * 60_000, timer, timer.cycleCount);
     } else await commit(null, []);
-    if (reached) void notify("Break finished", "Ready for the next focus session?", s.notifications);
+    if (reached) void notify(tr("Break finished"), tr("Ready for the next focus session?"), s.notifications);
     return;
   }
 
@@ -184,10 +185,10 @@ async function finishUnsafe(reached: boolean): Promise<void> {
     const next = nextPhase("focus", timer.cycleCount, s);
     const brk = s.autoStartBreaks ? startTimer({ ...timer, sessionId: null, phase: next.phase, plannedMs: next.plannedMs, cycleCount: next.cycleCount }, at) : null;
     await commit(brk, stmts, { review, gap: null });
-    void notify("Focus session complete", brk ? `Time for a ${next.phase === "long_break" ? "long" : "short"} break.` : "Nice work.", s.notifications);
+    void notify(tr("Focus session complete"), brk ? tr("Time for a {0} break.", next.phase === "long_break" ? "long" : "short") : tr("Nice work."), s.notifications);
   } else {
     await commit(null, stmts, { review, gap: null });
-    if (reached) void notify("Session complete", `${Math.round(worked / 60_000)} minutes recorded.`, s.notifications);
+    if (reached) void notify(tr("Session complete"), tr("{0} minutes recorded.", Math.round(worked / 60_000)), s.notifications);
   }
 }
 
